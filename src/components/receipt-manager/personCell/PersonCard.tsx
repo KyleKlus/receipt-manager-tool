@@ -33,7 +33,7 @@ export default function PersonCard(props: {
     const [newItemStore, setNewItemStore] = useState<string>('');
     const [newItemName, setNewItemName] = useState<string>('');
     const [newItemPrice, setNewItemPrice] = useState<number>(NaN);
-    const [newItemAmount, setNewItemAmount] = useState<number>(NaN);
+    const [newItemAmount, setNewItemAmount] = useState<number>(1);
 
     const myReceiptsExpenses: number = Calculator.calcReceiptsExpenses(myReceipts);
     const otherReceiptsExpenses: number = Calculator.calcReceiptsExpenses(otherReceipts);
@@ -58,6 +58,39 @@ export default function PersonCard(props: {
         uploadFile(e.target.files, isFirst).then(() => {
             e.target.value = '';
         });
+    }
+
+    function handleAddItem() {
+        if (newItemStore === '' || newItemName === '' || newItemPrice === 0 || newItemAmount < 0.01 || !Number.isInteger(newItemAmount)) { return }
+        const tmpReceipts: IReceipt[] = myReceipts.slice(0);
+        const newItem: IReceiptItem = {
+            name: newItemName,
+            price: newItemPrice,
+            amount: newItemAmount,
+            isMine: false,
+            isShared: true,
+            isRejected: false,
+            category: DataParser.DEFAULT_CATEGORY
+        }
+
+        const newReceipt: IReceipt = {
+            store: newItemStore,
+            owner: myName,
+            totalPrice: newItemPrice,
+            items: [newItem],
+            categoryForAllItems: DataParser.DEFAULT_CATEGORY,
+            isAllShared: false,
+            isAllRejected: false,
+            isAllMine: false
+        }
+
+        tmpReceipts.push(newReceipt)
+
+        setReceipts([...tmpReceipts], isFirst)
+        setNewItemStore('');
+        setNewItemName('');
+        setNewItemPrice(NaN);
+        setNewItemAmount(1);
     }
 
     return (
@@ -118,43 +151,48 @@ export default function PersonCard(props: {
             />
 
             <div className={[styles.personAddItemWrapper].join(' ')}>
-                <input placeholder='Store' type='text' value={newItemStore} onChange={(e) => { setNewItemStore(e.target.value) }} />
-                <input placeholder='Name' type='text' value={newItemName} onChange={(e) => { setNewItemName(e.target.value) }} />
+                <input placeholder='Store' type='text' value={newItemStore}
+                    onKeyDown={(k) => {
+                        if (k.key === 'Enter') {
+                            handleAddItem();
+                        }
+                    }}
+                    onChange={(e) => {
+                        setNewItemStore(e.target.value)
+                    }}
+                />
+                <input placeholder='Name' type='text' value={newItemName}
+                    onKeyDown={(k) => {
+                        if (k.key === 'Enter') {
+                            handleAddItem();
+                        }
+                    }}
+                    onChange={(e) => {
+                        setNewItemStore(e.target.value)
+                        setNewItemName(e.target.value)
+                    }} />
                 <div className={[styles.numberWrapper].join(' ')}>
-                    <input placeholder='Amount' type='number' value={Number.isNaN(newItemAmount) ? '' : newItemAmount} step="1" min="1" onChange={(e) => { setNewItemAmount(e.target.valueAsNumber) }} />
-                    <input placeholder='Price' type='number' value={Number.isNaN(newItemPrice) ? '' : newItemPrice} onChange={(e) => { setNewItemPrice(e.target.valueAsNumber) }} />
+                    <input placeholder='Amount' type='number' value={Number.isNaN(newItemAmount) ? '' : newItemAmount} step="1" min="1"
+                        onKeyDown={(k) => {
+                            if (k.key === 'Enter') {
+                                handleAddItem();
+                            }
+                        }}
+                        onChange={(e) => {
+                            setNewItemAmount(e.target.valueAsNumber)
+                        }} />
+                    <input placeholder='Price' type='number' value={Number.isNaN(newItemPrice) ? '' : newItemPrice}
+                        onKeyDown={(k) => {
+                            if (k.key === 'Enter') {
+                                handleAddItem();
+                            }
+                        }}
+                        onChange={(e) => {
+                            setNewItemPrice(e.target.valueAsNumber)
+                        }} />
                 </div>
                 <button className={[styles.fancyButton].join('')} onClick={() => {
-                    if (newItemStore === '' || newItemName === '' || newItemPrice === 0 || newItemAmount < 0.01 || !Number.isInteger(newItemAmount)) { return }
-                    const tmpReceipts: IReceipt[] = myReceipts.slice(0);
-                    const newItem: IReceiptItem = {
-                        name: newItemName,
-                        price: newItemPrice,
-                        amount: newItemAmount,
-                        isMine: false,
-                        isShared: true,
-                        isRejected: false,
-                        category: DataParser.DEFAULT_CATEGORY
-                    }
-
-                    const newReceipt: IReceipt = {
-                        store: newItemStore,
-                        owner: myName,
-                        totalPrice: newItemPrice,
-                        items: [newItem],
-                        categoryForAllItems: DataParser.DEFAULT_CATEGORY,
-                        isAllShared: false,
-                        isAllRejected: false,
-                        isAllMine: false
-                    }
-
-                    tmpReceipts.push(newReceipt)
-
-                    setReceipts([...tmpReceipts], isFirst)
-                    setNewItemStore('');
-                    setNewItemName('');
-                    setNewItemPrice(NaN);
-                    setNewItemAmount(NaN);
+                    handleAddItem();
                 }}>+ Add</button>
 
             </div>
