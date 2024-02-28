@@ -78,7 +78,14 @@ export default function ReceiptManager(props: {
     function deleteItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
         const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
 
-        updatedList[receiptNum].items.splice(itemNum, 1);
+        const deletedItem = updatedList[receiptNum].items.splice(itemNum, 1);
+        updatedList[receiptNum].totalPrice -= deletedItem[0].price;
+
+        if (updatedList[receiptNum].totalPrice < 0 && updatedList[receiptNum].items.length === 0) {
+            updatedList[receiptNum].totalPrice = 0;
+        }
+
+        updatedList[receiptNum].totalPrice = Math.floor(updatedList[receiptNum].totalPrice * 100) / 100;
 
         isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
     }
