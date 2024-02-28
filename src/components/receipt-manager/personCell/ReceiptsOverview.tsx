@@ -42,7 +42,7 @@ export default function ReceiptsOverview(props: {
 
     return (
         <div className={[styles.receiptsOverview].join(' ')}>
-            <div className={[styles.personTableHorizontalSplit].join(' ')}>
+            {/* <div className={[styles.personTableHorizontalSplit].join(' ')}>
                 <div className={[styles.personTableSplit].join(' ')}>
                     <div className={[styles.personTableSplitHeader].join(' ')}>{myName}&#39;s Receipts</div>
                     <hr />
@@ -80,20 +80,20 @@ export default function ReceiptsOverview(props: {
                     </div>
                 </div>
             </div>
-            <hr />
+            <hr /> */}
             <hr />
             <div className={[styles.personTableSum].join(' ')}>
                 <div>{myName}&#39;s total expenses: </div>
-                <div>{myTotalExpenses} €</div>
+                <div>{-myTotalExpenses} €</div>
             </div>
             <div className={[styles.personTableSum].join(' ')}>
                 <div>{myName} paid: </div>
-                <div>{-myReceiptsExpenses} €</div>
+                <div>{myReceiptsExpenses} €</div>
             </div>
             <hr />
             <div className={[styles.personTableSum].join(' ')}>
                 <div>Total result: </div>
-                <div>{result} €</div>
+                <div>{-result} €</div>
             </div>
             <hr />
             <hr />

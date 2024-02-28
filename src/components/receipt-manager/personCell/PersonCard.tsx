@@ -50,7 +50,6 @@ export default function PersonCard(props: {
 
     const myTotalExpenses: number = Math.floor((myExpensesFromOther + myExpensesFromMe) * 100) / 100;
 
-
     const rejectedFromMe: number = Calculator.calcRejectedExpenses(myReceipts);
     const result: number = Math.floor((myTotalExpenses - myReceiptsExpenses) * 100) / 100;
 
@@ -107,7 +106,6 @@ export default function PersonCard(props: {
                     Upload Data
                 </button>
                 <button disabled={myReceipts.length === 0 && otherReceipts.length === 0} className={[styles.fancyButton].join('')} onClick={() => {
-
                     const resultData: IResult = {
                         payerName: result <= 0 ? otherName : myName,
                         receiverName: result <= 0 ? myName : otherName,
