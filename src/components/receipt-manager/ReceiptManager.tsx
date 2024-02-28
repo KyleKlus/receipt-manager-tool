@@ -75,6 +75,14 @@ export default function ReceiptManager(props: {
         isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
     }
 
+    function deleteItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
+        const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
+
+        updatedList[receiptNum].items.splice(itemNum, 1);
+
+        isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+    }
+
     function selectCategoryForAllItems(receiptNum: number, isFrist: boolean, selectedCategory: Category) {
         const updatedList: IReceipt[] = isFrist ? firstReceipts.slice(0) : secondReceipts.slice(0);
 
@@ -147,6 +155,12 @@ export default function ReceiptManager(props: {
         isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
     }
 
+    function deleteReceipt(receiptNum: number, isFirstList: boolean) {
+        const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
+        updatedList.splice(receiptNum, 1);
+        isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+    }
+
     async function uploadFile(files: FileList | null, isFirst: boolean): Promise<void> {
         if (files !== null && files !== undefined) {
             let receipts: IReceipt[] = [];
@@ -207,6 +221,8 @@ export default function ReceiptManager(props: {
                     toggleMyItem={toggleMyItem}
                     toggleSharedItem={toggleShareItem}
                     toggleRejectedItem={toggleRejectItem}
+                    deleteReceipt={deleteReceipt}
+                    deleteItem={deleteItem}
                     selectCategory={selectCategory}
                 />
             }
@@ -223,6 +239,8 @@ export default function ReceiptManager(props: {
                     toggleMyItem={toggleMyItem}
                     toggleSharedItem={toggleShareItem}
                     toggleRejectedItem={toggleRejectItem}
+                    deleteReceipt={deleteReceipt}
+                    deleteItem={deleteItem}
                     selectCategory={selectCategory}
                 />
             }

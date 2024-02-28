@@ -14,10 +14,12 @@ export default function ReceiptsTable(props: {
     toggleAllMyItems: (receiptNum: number, isFirst: boolean) => void;
     toggleAllSharedItems: (receiptNum: number, isFirst: boolean) => void;
     toggleAllRejectedItems: (receiptNum: number, isFirst: boolean) => void;
+    deleteReceipt: (receiptNum: number, isFirst: boolean) => void;
     selectCategoryForAllItems: (receiptNum: number, isFirst: boolean, selectCategory: Category) => void;
     toggleMyItem: (receiptNum: number, itemNum: number, isFirst: boolean) => void;
     toggleSharedItem: (receiptNum: number, itemNum: number, isFirst: boolean) => void;
     toggleRejectedItem: (receiptNum: number, itemNum: number, isFirst: boolean) => void;
+    deleteItem: (receiptNum: number, itemNum: number, isFirst: boolean) => void;
     selectCategory: (receiptNum: number, itemNum: number, isFirst: boolean, selectCategory: Category) => void;
 }) {
     const {
@@ -28,10 +30,12 @@ export default function ReceiptsTable(props: {
         toggleAllMyItems,
         toggleAllSharedItems,
         toggleAllRejectedItems,
+        deleteReceipt,
         selectCategoryForAllItems,
         toggleMyItem,
         toggleSharedItem,
         toggleRejectedItem,
+        deleteItem,
         selectCategory
     } = props;
 
@@ -45,6 +49,7 @@ export default function ReceiptsTable(props: {
                 <th>Shared</th>
                 <th >{isFirst ? otherName : myName}</th>
                 <th >Category</th>
+                <th >Actions</th>
             </tr>
         );
     }
@@ -58,7 +63,6 @@ export default function ReceiptsTable(props: {
             const receipt: IReceipt = myReceipts[receiptNum];
             const receiptItems: IReceiptItem[] = receipt.items;
             key++;
-
 
             rows.push(
                 <tr key={keyChar + key}>
@@ -104,9 +108,13 @@ export default function ReceiptsTable(props: {
                                 .map((key, n) => { return (<option key={n} value={key}>{key}</option>) })}
                         </select> */}
                     </td>
+                    <td className={[styles.personTableCellHeader].join(' ')}>
+                        <button onClick={() => {
+                            deleteReceipt(receiptNum, isFirst);
+                        }}>🗑️ Delete</button>
+                    </td>
                 </tr>
             );
-
 
             rows.push(...receiptItems.map((item, itemNum) => {
                 key++;
@@ -152,6 +160,11 @@ export default function ReceiptsTable(props: {
                                 .slice((Object.keys(Category).length / 2))
                                 .map((key, n) => { return (<option key={n} value={key}>{key}</option>) })}
                         </select>
+                    </td>
+                    <td className={[].join(' ')}>
+                        <button onClick={() => {
+                            deleteItem(receiptNum, itemNum, isFirst);
+                        }}>🗑️ Delete</button>
                     </td>
                 </tr>)
             }));
