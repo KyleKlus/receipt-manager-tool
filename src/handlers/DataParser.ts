@@ -18,6 +18,11 @@ export enum Category {
     Stationery,
     Travel,
     Misc,
+    Rent,
+    Growth,
+    Formalities,
+    Leisure,
+    Discount,
     None
 }
 
@@ -101,12 +106,12 @@ export function parseFileToReceipts(file: File, ownerName: string): Promise<IRec
 
                         return {
                             name: itemName,
-                            price: price,
-                            amount: itemAmount,
                             isMine: false,
                             isShared: true,
                             isRejected: false,
-                            category: DEFAULT_CATEGORY
+                            price: itemName === 'Unrecognized Item' ? 0 : Math.round(price * 100) / 100,
+                            amount: itemName === 'Unrecognized Item' ? 0 : itemAmount,
+                            category: itemName === 'Unrecognized Item' ? Category.None : price < 0 ? Category.Discount : DEFAULT_CATEGORY
                         }
                     })
 
@@ -117,12 +122,12 @@ export function parseFileToReceipts(file: File, ownerName: string): Promise<IRec
                     const parsedReceipt: IReceipt = {
                         store: storeName,
                         owner: ownerName,
-                        totalPrice: Math.floor(totalPrice * 100) / 100,
-                        items: parsedReceiptItems,
                         categoryForAllItems: Category.None,
                         isAllShared: false,
                         isAllRejected: false,
                         isAllMine: false,
+                        totalPrice: storeName === 'Unrecognized Store' ? 0 : Math.round(totalPrice * 100) / 100,
+                        items: storeName === 'Unrecognized Store' ? [] : parsedReceiptItems,
                     }
 
                     receipts = receipts.concat(parsedReceipt)
