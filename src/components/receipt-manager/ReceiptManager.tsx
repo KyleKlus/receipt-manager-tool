@@ -7,6 +7,7 @@ import PersonCard from '@/components/receipt-manager/personCell/PersonCard';
 import ReceiptsTable from '@/components/receipt-manager/personCell/ReceiptsTable';
 import { Category } from '@/handlers/DataParser';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
+import useStorage from '@/hooks/useStorage';
 
 
 export default function ReceiptManager(props: {
@@ -14,11 +15,62 @@ export default function ReceiptManager(props: {
     const {
     } = props;
 
-    const [firstPersonName, setFirstPersonName] = useState<string>('Person 1');
+    const storage = useStorage();
+
+    const [firstPersonName, setFirstPersonName] = useState<string>('');
     const [firstReceipts, setFirstReceipts] = useState<IReceipt[]>([]);
 
-    const [secondPersonName, setSecondPersonName] = useState<string>('Person 2');
+    const [secondPersonName, setSecondPersonName] = useState<string>('');
     const [secondReceipts, setSecondReceipts] = useState<IReceipt[]>([]);
+    const [isLocalDataLoaded, setIsLocalDataLoaded] = useState<boolean>(false);
+
+    useEffect(() => {
+        // Load saved data
+        if (isLocalDataLoaded || !storage.isBrowser) { return; }
+
+        if (storage.isItemSet('firstName', 'local')) {
+            const firstName = storage.getItem('firstName', 'local');
+            console.log(firstName)
+            setFirstPersonName(firstName);
+        }
+
+        if (storage.isItemSet('secondName', 'local')) {
+            const secondName = storage.getItem('secondName', 'local');
+            setSecondPersonName(secondName);
+        }
+
+        if (storage.isItemSet('firstReceipts', 'local')) {
+            const firstReceipts = storage.getItem('firstReceipts', 'local');
+            setFirstReceipts(JSON.parse(firstReceipts) as IReceipt[]);
+        }
+
+        if (storage.isItemSet('secondReceipts', 'local')) {
+            const secondReceipts = storage.getItem('secondReceipts', 'local');
+            setSecondReceipts(JSON.parse(secondReceipts) as IReceipt[]);
+        }
+
+        setIsLocalDataLoaded(true);
+    });
+
+    function saveFirstReceipts(receipts: IReceipt[]) {
+        storage.setItem('firstReceipts', JSON.stringify(receipts), 'local')
+        setFirstReceipts(receipts);
+    }
+
+    function saveFirstPersonName(name: string) {
+        storage.setItem('firstName', name, 'local')
+        setFirstPersonName(name);
+    }
+
+    function saveSecondReceipts(receipts: IReceipt[]) {
+        storage.setItem('secondReceipts', JSON.stringify(receipts), 'local')
+        setSecondReceipts(receipts);
+    }
+
+    function saveSecondPersonName(name: string) {
+        storage.setItem('secondName', name, 'local')
+        setSecondPersonName(name);
+    }
 
     function selectCategory(receiptNum: number, itemNum: number, isFrist: boolean, selectedCategory: Category) {
         const updatedList: IReceipt[] = isFrist ? firstReceipts : secondReceipts;
@@ -26,7 +78,7 @@ export default function ReceiptManager(props: {
         updatedList[receiptNum].categoryForAllItems = Category.None;
         updatedList[receiptNum].items[itemNum].category = selectedCategory;
 
-        isFrist ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+        isFrist ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
     }
 
     function toggleRejectItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
@@ -43,7 +95,7 @@ export default function ReceiptManager(props: {
         updatedList[receiptNum].items[itemNum].isShared = !updatedList[receiptNum].items[itemNum].isRejected;
 
 
-        isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
     }
 
     function toggleShareItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
@@ -58,7 +110,7 @@ export default function ReceiptManager(props: {
         updatedList[receiptNum].items[itemNum].isShared = !updatedList[receiptNum].items[itemNum].isShared;
         updatedList[receiptNum].items[itemNum].isMine = updatedList[receiptNum].items[itemNum].isShared && updatedList[receiptNum].items[itemNum].isRejected;
 
-        isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
     }
 
     function toggleMyItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
@@ -72,7 +124,7 @@ export default function ReceiptManager(props: {
         updatedList[receiptNum].items[itemNum].isShared = !updatedList[receiptNum].items[itemNum].isMine;
         updatedList[receiptNum].items[itemNum].isRejected = false;
 
-        isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
     }
 
     function deleteItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
@@ -87,7 +139,7 @@ export default function ReceiptManager(props: {
 
         updatedList[receiptNum].totalPrice = Math.floor(updatedList[receiptNum].totalPrice * 100) / 100;
 
-        isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
     }
 
     function selectCategoryForAllItems(receiptNum: number, isFrist: boolean, selectedCategory: Category) {
@@ -106,7 +158,7 @@ export default function ReceiptManager(props: {
         console.log(updatedList[receiptNum].items[0]);
 
 
-        isFrist ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+        isFrist ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
     }
 
     function toggleAllRejectedItems(receiptNum: number, isFirstList: boolean) {
@@ -125,7 +177,7 @@ export default function ReceiptManager(props: {
             item.isMine = updatedList[receiptNum].isAllMine;
         });
 
-        isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
     }
 
     function toggleAllSharedItems(receiptNum: number, isFirstList: boolean) {
@@ -143,7 +195,7 @@ export default function ReceiptManager(props: {
             item.isMine = updatedList[receiptNum].isAllMine;
         });
 
-        isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
     }
 
     function toggleAllMyItems(receiptNum: number, isFirstList: boolean) {
@@ -159,13 +211,13 @@ export default function ReceiptManager(props: {
             item.isMine = updatedList[receiptNum].isAllMine;
         });
 
-        isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
     }
 
     function deleteReceipt(receiptNum: number, isFirstList: boolean) {
         const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
         updatedList.splice(receiptNum, 1);
-        isFirstList ? setFirstReceipts([...updatedList]) : setSecondReceipts([...updatedList]);
+        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
     }
 
     async function uploadFile(files: FileList | null, isFirst: boolean): Promise<void> {
@@ -175,19 +227,20 @@ export default function ReceiptManager(props: {
             for (let i = 0; i < files.length; i++) {
                 receipts = receipts.concat(await CSVParser.parseFileToReceipts(files[i], isFirst ? firstPersonName : secondPersonName));
             }
+
             if (isFirst) {
-                setFirstReceipts([...receipts])
+                saveFirstReceipts([...receipts])
             } else {
-                setSecondReceipts([...receipts])
+                saveSecondReceipts([...receipts])
             }
         }
     }
 
     function setReceipts(receipts: IReceipt[], isFirst: boolean) {
         if (isFirst) {
-            setFirstReceipts([...receipts]);
+            saveFirstReceipts([...receipts]);
         } else {
-            setSecondReceipts([...receipts]);
+            saveSecondReceipts([...receipts]);
         }
     }
 
@@ -200,7 +253,7 @@ export default function ReceiptManager(props: {
                     isFirst={true}
                     myReceipts={firstReceipts}
                     otherReceipts={secondReceipts}
-                    setPersonName={setFirstPersonName}
+                    setPersonName={saveFirstPersonName}
                     setReceipts={setReceipts}
                     uploadFile={uploadFile}
                 />
@@ -210,7 +263,7 @@ export default function ReceiptManager(props: {
                     isFirst={false}
                     myReceipts={secondReceipts}
                     otherReceipts={firstReceipts}
-                    setPersonName={setSecondPersonName}
+                    setPersonName={saveSecondPersonName}
                     setReceipts={setReceipts}
                     uploadFile={uploadFile}
                 />

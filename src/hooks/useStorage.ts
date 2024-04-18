@@ -1,8 +1,10 @@
 type StorageType = 'session' | 'local';
 type UseStorageReturnValue = {
   getItem: (key: string, type?: StorageType) => string;
+  isItemSet: (key: string, type?: StorageType) => boolean;
   setItem: (key: string, value: string, type?: StorageType) => boolean;
   removeItem: (key: string, type?: StorageType) => void;
+  isBrowser: boolean;
 };
 
 const useStorage = (): UseStorageReturnValue => {
@@ -14,8 +16,13 @@ const useStorage = (): UseStorageReturnValue => {
     return isBrowser ? window[storageType(type)][key] : '';
   };
 
+  const isItemSet = (key: string, type?: StorageType): boolean => {
+    return isBrowser ? window[storageType(type)][key] !== undefined : false;
+  };
+
   const setItem = (key: string, value: string, type?: StorageType): boolean => {
     if (isBrowser) {
+      console.log(key, value)
       window[storageType(type)].setItem(key, value);
       return true;
     }
@@ -31,6 +38,8 @@ const useStorage = (): UseStorageReturnValue => {
     getItem,
     setItem,
     removeItem,
+    isItemSet,
+    isBrowser
   };
 };
 
