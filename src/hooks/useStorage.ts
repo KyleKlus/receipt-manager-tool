@@ -22,7 +22,6 @@ const useStorage = (): UseStorageReturnValue => {
 
   const setItem = (key: string, value: string, type?: StorageType): boolean => {
     if (isBrowser) {
-      console.log(key, value)
       window[storageType(type)].setItem(key, value);
       return true;
     }

@@ -30,7 +30,6 @@ export default function ReceiptManager(props: {
 
         if (storage.isItemSet('firstName', 'local')) {
             const firstName = storage.getItem('firstName', 'local');
-            console.log(firstName)
             setFirstPersonName(firstName);
         }
 
