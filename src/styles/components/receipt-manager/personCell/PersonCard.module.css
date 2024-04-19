@@ -1,6 +1,7 @@
 .personCard {
-    padding: 8px 0;
+    padding: 24px 0;
     flex-grow: 1;
+    height: 440px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -8,16 +9,15 @@
     border-radius: var(--border-radius);
     outline: 1px solid var(--bg-color-40);
     box-shadow: var(--shadowElevation_4);
-
+    gap: 24px;
 }
 
-.personHeader {
+.fileControls {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    margin-bottom: 24px;
     gap: 16px;
 }
 
@@ -27,12 +27,16 @@
     font-size: x-large;
     text-align: center;
     max-width: 16ch;
-    margin-bottom: 16px;
     box-shadow: none !important;
 }
 
 .fancyButton {
+    width: 90px;
     padding: 2px 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
 }
 
 .personAddItemWrapper {
@@ -42,25 +46,29 @@
     justify-content: center;
     align-items: center;
 
-    margin-top: 32px;
-    margin-bottom: 32px;
-
-    width: 42ch;
-
     gap: 16px;
+}
+
+.hBox{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    width: 100%;
 }
 
 
 .personAddItemWrapper input[type='text'],
 .personAddItemWrapper input[type='number'] {
     appearance: none;
-    padding: 0 4px;
+    padding: 0 8px;
     background-color: transparent;
     border: none;
     border-bottom: 1px dotted var(--bg-color-70);
     transition: border 200ms ease;
     box-shadow: none;
     border-radius: 0;
+    font-size: 1rem;
 }
 
 .personAddItemWrapper input[type='text']:is(:hover, :focus-visible),
@@ -77,19 +85,6 @@
 .personAddItemWrapper > *:nth-child(2) {
     width: 42ch;
 }
-
-.personAddItemWrapper > *:nth-child(3) {
-    display: flex;
-    gap: 8.5ch;
-}
-
-.personAddItemWrapper > *:nth-child(4) {
-    width: 9ch;
-}
-
-
-
-
 
 
 /* Enable hover only on non-touch devices */

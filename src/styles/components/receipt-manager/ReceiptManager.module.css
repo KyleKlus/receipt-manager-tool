@@ -13,7 +13,7 @@
 .split {
     width: 100%;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     flex-direction: row;
 
     justify-content: center;
@@ -132,6 +132,12 @@
 
 @media (prefers-reduced-motion) {}
 
+
+@media (max-width: 990px) {
+    .split {
+        flex-wrap: wrap;
+    }
+}
 
 
 /* Mobile */

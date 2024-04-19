@@ -27,7 +27,6 @@
     border-right: 1px solid var(--bg-color-50);
 }
 
-
 .personTableSum {
     display: flex;
     flex-wrap: wrap;
@@ -46,7 +45,7 @@
 }
 
 .personTableSum div {
-    padding: 0 8px;
+    padding: 0 16px;
 }
 
 @media (max-width: 500px) {

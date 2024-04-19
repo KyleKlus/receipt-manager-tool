@@ -2,13 +2,12 @@
 import styles from '@/styles/components/receipt-manager/ReceiptManager.module.css';
 import { useEffect, useState } from 'react';
 import { IReceipt } from '@/interfaces/IReceipt';
-import * as DataParser from '@/handlers/DataParser';
-import * as ReceiptModifier from '@/handlers/ReceiptModifier';
 import PersonCard from '@/components/receipt-manager/personCell/PersonCard';
 import ReceiptsTable from '@/components/receipt-manager/personCell/ReceiptsTable';
 import { Category } from '@/handlers/DataParser';
-import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import useStorage from '@/hooks/useStorage';
+import * as DataParser from '@/handlers/DataParser';
+import * as ReceiptModifier from '@/handlers/ReceiptModifier';
 
 
 export default function ReceiptManager(props: {

@@ -8,6 +8,7 @@ import * as Calculator from '@/handlers/Calculator';
 import ReceiptsOverview from './ReceiptsOverview';
 import moment from 'moment';
 import { IResult } from '@/interfaces/IResult';
+import { Download, Plus, Upload, X } from 'lucide-react';
 
 export default function PersonCard(props: {
     myName: string,
@@ -97,13 +98,27 @@ export default function PersonCard(props: {
             <input className={[styles.personName].join(' ')} type={'text'} value={myName} placeholder={'Name'} onChange={(e) => {
                 setPersonName(e.currentTarget.value, isFirst);
             }} />
-            <div className={[styles.personHeader].join(' ')}>
+            <ReceiptsOverview
+                myName={myName}
+                otherName={otherName}
+                myReceiptsExpenses={myReceiptsExpenses}
+                myItemsFromMe={myItemsFromMe}
+                sharedFromMe={sharedFromMe}
+                myExpensesFromMe={myExpensesFromMe}
+                myItemsFromOther={myItemsFromOther}
+                sharedFromOther={sharedFromOther}
+                myExpensesFromOther={myExpensesFromOther}
+                myTotalExpenses={myTotalExpenses}
+                rejectedFromMe={rejectedFromMe}
+                result={result}
+            />
+            <div className={[styles.fileControls].join(' ')}>
                 <button className={[styles.fancyButton].join('')} onClick={() => {
                     if (typeof window !== null && typeof window !== undefined) {
                         window.document.getElementById(isFirst ? 'firstUpload' : 'secondUpload')!.click()
                     }
                 }}>
-                    Upload Data
+                    <Upload width={16} /> Upload
                 </button>
                 <button disabled={myReceipts.length === 0 && otherReceipts.length === 0} className={[styles.fancyButton].join('')} onClick={() => {
                     const resultData: IResult = {
@@ -122,32 +137,17 @@ export default function PersonCard(props: {
 
                     DataParser.downloadEXCEL('Expenses_' + moment().format('DD_MM_YYYY'), myName, otherName, myReceipts, otherReceipts, resultData);
                 }}>
-                    Export Expenses
+                    <Download width={16} /> Export
                 </button>
                 <button className={[styles.fancyButton].join('')} onClick={() => {
                     setReceipts([], isFirst);
                 }}>
-                    Clear Data
+                    <X width={16} /> Clear
                 </button>
 
 
                 <input type='file' id={isFirst ? 'firstUpload' : 'secondUpload'} accept='.csv' multiple={true} onChange={handleFileUpload} style={{ display: 'none' }} />
             </div>
-            <ReceiptsOverview
-                myName={myName}
-                otherName={otherName}
-                myReceiptsExpenses={myReceiptsExpenses}
-                myItemsFromMe={myItemsFromMe}
-                sharedFromMe={sharedFromMe}
-                myExpensesFromMe={myExpensesFromMe}
-                myItemsFromOther={myItemsFromOther}
-                sharedFromOther={sharedFromOther}
-                myExpensesFromOther={myExpensesFromOther}
-                myTotalExpenses={myTotalExpenses}
-                rejectedFromMe={rejectedFromMe}
-                result={result}
-            />
-
             <div className={[styles.personAddItemWrapper].join(' ')}>
                 <input placeholder='Store' type='text' value={newItemStore}
                     onKeyDown={(k) => {
@@ -169,7 +169,7 @@ export default function PersonCard(props: {
                         setNewItemStore(e.target.value)
                         setNewItemName(e.target.value)
                     }} />
-                <div className={[styles.numberWrapper].join(' ')}>
+                <div className={[styles.hBox].join(' ')}>
                     <input placeholder='Amount' type='number' value={Number.isNaN(newItemAmount) ? '' : newItemAmount} step="1" min="1"
                         onKeyDown={(k) => {
                             if (k.key === 'Enter') {
@@ -188,10 +188,11 @@ export default function PersonCard(props: {
                         onChange={(e) => {
                             setNewItemPrice(e.target.valueAsNumber)
                         }} />
+                    <button className={[styles.fancyButton].join('')} onClick={() => {
+                        handleAddItem();
+                    }}><Plus width={16} /> Add</button>
                 </div>
-                <button className={[styles.fancyButton].join('')} onClick={() => {
-                    handleAddItem();
-                }}>+ Add</button>
+
 
             </div>
         </div>
