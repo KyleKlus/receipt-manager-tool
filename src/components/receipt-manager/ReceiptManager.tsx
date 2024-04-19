@@ -2,7 +2,8 @@
 import styles from '@/styles/components/receipt-manager/ReceiptManager.module.css';
 import { useEffect, useState } from 'react';
 import { IReceipt } from '@/interfaces/IReceipt';
-import * as CSVParser from '@/handlers/DataParser';
+import * as DataParser from '@/handlers/DataParser';
+import * as ReceiptModifier from '@/handlers/ReceiptModifier';
 import PersonCard from '@/components/receipt-manager/personCell/PersonCard';
 import ReceiptsTable from '@/components/receipt-manager/personCell/ReceiptsTable';
 import { Category } from '@/handlers/DataParser';
@@ -26,6 +27,10 @@ export default function ReceiptManager(props: {
 
     useEffect(() => {
         // Load saved data
+        loadDataFromLocalStorage()
+    });
+
+    function loadDataFromLocalStorage() {
         if (isLocalDataLoaded || !storage.isBrowser) { return; }
 
         if (storage.isItemSet('firstName', 'local')) {
@@ -49,7 +54,7 @@ export default function ReceiptManager(props: {
         }
 
         setIsLocalDataLoaded(true);
-    });
+    }
 
     function saveFirstReceipts(receipts: IReceipt[]) {
         storage.setItem('firstReceipts', JSON.stringify(receipts), 'local')
@@ -71,176 +76,78 @@ export default function ReceiptManager(props: {
         setSecondPersonName(name);
     }
 
-    function selectCategory(receiptNum: number, itemNum: number, isFrist: boolean, selectedCategory: Category) {
-        const updatedList: IReceipt[] = isFrist ? firstReceipts : secondReceipts;
-
-        updatedList[receiptNum].categoryForAllItems = Category.None;
-        updatedList[receiptNum].items[itemNum].category = selectedCategory;
-
-        isFrist ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
+    function getReceipts(isFirstList: boolean): IReceipt[] {
+        return isFirstList ? firstReceipts.slice(0) : secondReceipts.slice(0);
     }
 
-    function toggleRejectItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
-        const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
-
-        updatedList[receiptNum].isAllRejected = false;
-        updatedList[receiptNum].isAllShared = false;
-        updatedList[receiptNum].isAllMine = false;
-
-        if (updatedList[receiptNum].items[itemNum].isMine === true) {
-            updatedList[receiptNum].items[itemNum].isMine = false;
-        };
-        updatedList[receiptNum].items[itemNum].isRejected = !updatedList[receiptNum].items[itemNum].isRejected;
-        updatedList[receiptNum].items[itemNum].isShared = !updatedList[receiptNum].items[itemNum].isRejected;
-
-
-        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
-    }
-
-    function toggleShareItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
-        const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
-        updatedList[receiptNum].isAllRejected = false;
-        updatedList[receiptNum].isAllShared = false;
-        updatedList[receiptNum].isAllMine = false;
-
-        if (updatedList[receiptNum].items[itemNum].isRejected === true && !updatedList[receiptNum].items[itemNum].isShared === true) {
-            updatedList[receiptNum].items[itemNum].isRejected = false;
-        };
-        updatedList[receiptNum].items[itemNum].isShared = !updatedList[receiptNum].items[itemNum].isShared;
-        updatedList[receiptNum].items[itemNum].isMine = updatedList[receiptNum].items[itemNum].isShared && updatedList[receiptNum].items[itemNum].isRejected;
-
-        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
-    }
-
-    function toggleMyItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
-        const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
-
-        updatedList[receiptNum].isAllRejected = false;
-        updatedList[receiptNum].isAllShared = false;
-        updatedList[receiptNum].isAllMine = false;
-
-        updatedList[receiptNum].items[itemNum].isMine = !updatedList[receiptNum].items[itemNum].isMine;
-        updatedList[receiptNum].items[itemNum].isShared = !updatedList[receiptNum].items[itemNum].isMine;
-        updatedList[receiptNum].items[itemNum].isRejected = false;
-
-        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
-    }
-
-    function deleteItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
-        const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
-
-        const deletedItem = updatedList[receiptNum].items.splice(itemNum, 1);
-        updatedList[receiptNum].totalPrice -= deletedItem[0].price;
-
-        if (updatedList[receiptNum].totalPrice < 0 && updatedList[receiptNum].items.length === 0) {
-            updatedList[receiptNum].totalPrice = 0;
-        }
-
-        updatedList[receiptNum].totalPrice = Math.floor(updatedList[receiptNum].totalPrice * 100) / 100;
-
-        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
-    }
-
-    function selectCategoryForAllItems(receiptNum: number, isFrist: boolean, selectedCategory: Category) {
-        const updatedList: IReceipt[] = isFrist ? firstReceipts.slice(0) : secondReceipts.slice(0);
-
-        updatedList[receiptNum].categoryForAllItems = selectedCategory;
-
-        const tmpItems: IReceiptItem[] = updatedList[receiptNum].items.slice(0);
-
-        tmpItems.forEach((item) => {
-            item.category = selectedCategory;
-        })
-
-        updatedList[receiptNum].items = tmpItems;
-
-        console.log(updatedList[receiptNum].items[0]);
-
-
-        isFrist ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
-    }
-
-    function toggleAllRejectedItems(receiptNum: number, isFirstList: boolean) {
-        const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
-
-        if (updatedList[receiptNum].isAllMine === true) {
-            updatedList[receiptNum].isAllMine = false;
-        };
-        updatedList[receiptNum].isAllRejected = !updatedList[receiptNum].isAllRejected;
-        updatedList[receiptNum].isAllShared = !updatedList[receiptNum].isAllRejected;
-
-
-        updatedList[receiptNum].items.forEach((item) => {
-            item.isRejected = updatedList[receiptNum].isAllRejected;
-            item.isShared = updatedList[receiptNum].isAllShared;
-            item.isMine = updatedList[receiptNum].isAllMine;
-        });
-
-        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
-    }
-
-    function toggleAllSharedItems(receiptNum: number, isFirstList: boolean) {
-        const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
-
-        if (updatedList[receiptNum].isAllRejected === true && !updatedList[receiptNum].isAllShared === true) {
-            updatedList[receiptNum].isAllRejected = false;
-        };
-        updatedList[receiptNum].isAllShared = !updatedList[receiptNum].isAllShared;
-        updatedList[receiptNum].isAllMine = updatedList[receiptNum].isAllShared && updatedList[receiptNum].isAllRejected;
-
-        updatedList[receiptNum].items.forEach((item) => {
-            item.isRejected = updatedList[receiptNum].isAllRejected;
-            item.isShared = updatedList[receiptNum].isAllShared;
-            item.isMine = updatedList[receiptNum].isAllMine;
-        });
-
-        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
-    }
-
-    function toggleAllMyItems(receiptNum: number, isFirstList: boolean) {
-        const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
-
-        updatedList[receiptNum].isAllMine = !updatedList[receiptNum].isAllMine;
-        updatedList[receiptNum].isAllShared = !updatedList[receiptNum].isAllMine;
-        updatedList[receiptNum].isAllRejected = false;
-
-        updatedList[receiptNum].items.forEach((item) => {
-            item.isRejected = updatedList[receiptNum].isAllRejected;
-            item.isShared = updatedList[receiptNum].isAllShared;
-            item.isMine = updatedList[receiptNum].isAllMine;
-        });
-
-        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
-    }
-
-    function deleteReceipt(receiptNum: number, isFirstList: boolean) {
-        const updatedList: IReceipt[] = isFirstList ? firstReceipts : secondReceipts;
-        updatedList.splice(receiptNum, 1);
-        isFirstList ? saveFirstReceipts([...updatedList]) : saveSecondReceipts([...updatedList]);
-    }
-
-    async function uploadFile(files: FileList | null, isFirst: boolean): Promise<void> {
-        if (files !== null && files !== undefined) {
-            let receipts: IReceipt[] = [];
-
-            for (let i = 0; i < files.length; i++) {
-                receipts = receipts.concat(await CSVParser.parseFileToReceipts(files[i], isFirst ? firstPersonName : secondPersonName));
-            }
-
-            if (isFirst) {
-                saveFirstReceipts([...receipts])
-            } else {
-                saveSecondReceipts([...receipts])
-            }
-        }
-    }
-
-    function setReceipts(receipts: IReceipt[], isFirst: boolean) {
-        if (isFirst) {
+    function setReceipts(receipts: IReceipt[], isFirstList: boolean) {
+        if (isFirstList) {
             saveFirstReceipts([...receipts]);
         } else {
             saveSecondReceipts([...receipts]);
         }
+    }
+
+    function selectCategory(receiptNum: number, itemNum: number, isFirstList: boolean, selectedCategory: Category) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.selectCategory(receipts, receiptNum, itemNum, selectedCategory), isFirstList);
+    }
+
+    function toggleRejectItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.toggleRejectItem(receipts, receiptNum, itemNum), isFirstList);
+    }
+
+    function toggleShareItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.toggleShareItem(receipts, receiptNum, itemNum), isFirstList);
+    }
+
+    function toggleMyItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.toggleMyItem(receipts, receiptNum, itemNum), isFirstList);
+    }
+
+    function deleteItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.deleteItem(receipts, receiptNum, itemNum), isFirstList);
+    }
+
+    function selectCategoryForAllItems(receiptNum: number, isFirstList: boolean, selectedCategory: Category) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.selectCategoryForAllItems(receipts, receiptNum, selectedCategory), isFirstList);
+    }
+
+    function toggleAllRejectedItems(receiptNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.toggleAllRejectedItems(receipts, receiptNum), isFirstList);
+    }
+
+    function toggleAllSharedItems(receiptNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.toggleAllSharedItems(receipts, receiptNum), isFirstList);
+    }
+
+    function toggleAllMyItems(receiptNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.toggleAllMyItems(receipts, receiptNum), isFirstList);
+    }
+
+    function deleteReceipt(receiptNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.deleteReceipt(receipts, receiptNum), isFirstList);
+    }
+
+    async function uploadFile(files: FileList | null, isFirst: boolean): Promise<void> {
+        if (files === null || files === undefined) { return; }
+
+        let receipts: IReceipt[] = [];
+
+        for (let i = 0; i < files.length; i++) {
+            receipts = receipts.concat(await DataParser.parseFileToReceipts(files[i], isFirst ? firstPersonName : secondPersonName));
+        }
+
+        setReceipts(receipts, isFirst);
     }
 
     return (

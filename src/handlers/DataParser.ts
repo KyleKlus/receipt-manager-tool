@@ -26,6 +26,16 @@ export enum Category {
     None
 }
 
+interface IExportDataRow {
+    Name: string;
+    Price: number;
+    Amount: number;
+    Category: string;
+    IsMyItem: boolean;
+    IsSharedItem: boolean;
+    IsRejectedItem: boolean;
+}
+
 export const DEFAULT_CATEGORY: Category = Category.Food;
 
 export function downloadCSV(name: string, myReceipts: IReceipt[], otherReceipts: IReceipt[]) {
@@ -40,27 +50,17 @@ export function downloadCSV(name: string, myReceipts: IReceipt[], otherReceipts:
 }
 
 export function downloadEXCEL(name: string, myName: string, otherName: string, myReceipts: IReceipt[], otherReceipts: IReceipt[], result: IResult) {
-    const myData: string = _prepCSVDataReceipts(myReceipts, otherReceipts);
-    const otherData: string = _prepCSVDataReceipts(otherReceipts, myReceipts);
-    const resultData: string = _prepCSVDataTotal(result);
+    const myData: IExportDataRow[] = _prepDataReceipts(myReceipts, otherReceipts);
+    const otherData: IExportDataRow[] = _prepDataReceipts(otherReceipts, myReceipts);
+    const resultData: any[] = _prepDataTotal(result);
 
-    if (name === undefined || myData === undefined || name === '' || myData.length === 0 || myData[0] === '') { return; }
-
-    const myArrayOfArrayCsv = myData.split("\n").map((row: string) => {
-        return row.split(';');
-    });
-    const otherArrayOfArrayCsv = otherData.split("\n").map((row: string) => {
-        return row.split(';');
-    });
-    const resultArrayOfArrayCsv = resultData.split("\n").map((row: string) => {
-        return row.split(';');
-    });
+    if (name === undefined || name === '' || myData.length === 0) { return; }
 
 
     const wb = XLSX.utils.book_new();
-    const myWs = XLSX.utils.aoa_to_sheet(myArrayOfArrayCsv);
-    const otherWs = XLSX.utils.aoa_to_sheet(otherArrayOfArrayCsv);
-    const resultWs = XLSX.utils.aoa_to_sheet(resultArrayOfArrayCsv);
+    const myWs = XLSX.utils.json_to_sheet(myData);
+    const otherWs = XLSX.utils.json_to_sheet(otherData);
+    const resultWs = XLSX.utils.json_to_sheet(resultData);
 
     XLSX.utils.book_append_sheet(wb, myWs, myName + '_' + name);
     XLSX.utils.book_append_sheet(wb, otherWs, otherName + '_' + name);
@@ -167,11 +167,9 @@ function _firstCharToUppercase(text: string): string {
     return '';
 }
 
-function _prepCSVDataReceipts(myReceipts: IReceipt[], otherReceipts: IReceipt[]): string {
-    let dataString: string = '';
-
-    if (myReceipts === undefined || otherReceipts === undefined) { return dataString; }
-    if (myReceipts.length === 0 && otherReceipts.length === 0) { return dataString; }
+function _prepDataReceipts(myReceipts: IReceipt[], otherReceipts: IReceipt[]): IExportDataRow[] {
+    if (myReceipts === undefined || otherReceipts === undefined) { return []; }
+    if (myReceipts.length === 0 && otherReceipts.length === 0) { return []; }
 
     let filteredList: IReceiptItem[] = []
     let otherFilteredList: IReceiptItem[] = [];
@@ -198,23 +196,78 @@ function _prepCSVDataReceipts(myReceipts: IReceipt[], otherReceipts: IReceipt[])
         }
     });
 
-    const data = filteredList.concat(otherFilteredList).slice(0).map((e) => {
-        return {
-            name: e.name,
-            price: e.price.toString().replace('.', ','),
-            amount: e.amount.toString().replace('.', ','),
-            category: Category[e.category],
-            mine: e.isMine,
-            shared: e.isShared,
-            rejected: e.isRejected,
+    const data: IExportDataRow[] = filteredList.concat(otherFilteredList).slice(0).map((e) => {
+        const row: IExportDataRow = {
+            Name: e.name,
+            Price: e.price,
+            Amount: e.amount,
+            Category: Category[e.category],
+            IsMyItem: e.isMine,
+            IsSharedItem: e.isShared,
+            IsRejectedItem: e.isRejected,
         }
+        return row;
     }).slice(0);
+
+    return data;
+}
+
+function _prepDataTotal(resultData: IResult): any[] {
+
+    if (resultData === undefined) { return []; }
+
+    const firstValue = resultData.payerName + '`s Values';
+    const secondValue = resultData.receiverName + '`s Values';
+
+    const totalData: any[] = [
+        {
+            Stuff: 'Personal Items from ' + resultData.payerName + '`s receipts',
+            [firstValue]: resultData.payerItemsFromPayer,
+            [secondValue]: resultData.receiverItemsFromPayer
+        },
+        {
+            Stuff: 'Personal Items from ' + resultData.receiverName + '`s receipts',
+            [firstValue]: resultData.payerItemsFromReceiver,
+            [secondValue]: resultData.receiverItemsFromReceiver
+        },
+        {
+            Stuff: 'Shared Items from ' + resultData.payerName + '`s receipts',
+            [firstValue]: resultData.sharedFromPayer,
+            [secondValue]: resultData.sharedFromPayer
+        },
+        {
+            Stuff: 'Shared Items from ' + resultData.receiverName + '`s receipts',
+            [firstValue]: resultData.sharedFromReceiver,
+            [secondValue]: resultData.sharedFromReceiver
+        },
+        {
+            Stuff: 'Money paid',
+            [firstValue]: -1 * resultData.payerExpenses,
+            [secondValue]: -1 * resultData.receiverExpenses
+        },
+        {
+            Stuff: 'Result',
+            [firstValue]: -1 * resultData.result,
+            [secondValue]: resultData.result
+        }
+    ]
+
+    return totalData;
+}
+
+function _prepCSVDataReceipts(myReceipts: IReceipt[], otherReceipts: IReceipt[]): string {
+    let dataString: string = '';
+
+    if (myReceipts === undefined || otherReceipts === undefined) { return dataString; }
+    if (myReceipts.length === 0 && otherReceipts.length === 0) { return dataString; }
+
+    const data = _prepDataReceipts(myReceipts, otherReceipts);
 
     if (data.length === 0) { return dataString; }
 
     const csvHeaders: string = 'Name;Price;Amount;Category;IsMyItem;IsSharedItem;IsRejectedItem';
     const csvDataArray: string[] = [csvHeaders, ...data.map((row) => {
-        return [row.name, row.price, row.amount, row.category, row.mine, row.shared, row.rejected].join(';')
+        return [row.Name, row.Price, row.Amount, row.Category, row.IsMyItem, row.IsSharedItem, row.IsRejectedItem].join(';')
     })]
 
     const csvData: string = csvDataArray.join('\n');
