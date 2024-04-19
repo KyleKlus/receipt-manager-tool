@@ -1,6 +1,7 @@
+import { Category } from "@/enums/Category";
 import { IReceipt } from "@/interfaces/IReceipt";
 import { IReceiptItem } from "@/interfaces/IReceiptItem";
-import { Category } from "./DataParser";
+
 
 export function selectCategory(receipts: IReceipt[], receiptNum: number, itemNum: number, selectedCategory: Category): IReceipt[] {
     const updatedList: IReceipt[] = receipts;

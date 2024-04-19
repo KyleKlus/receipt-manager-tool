@@ -4,11 +4,10 @@ import { useEffect, useState } from 'react';
 import { IReceipt } from '@/interfaces/IReceipt';
 import PersonCard from '@/components/receipt-manager/personCell/PersonCard';
 import ReceiptsTable from '@/components/receipt-manager/personCell/ReceiptsTable';
-import { Category } from '@/handlers/DataParser';
+import { Category } from "@/enums/Category";
 import useStorage from '@/hooks/useStorage';
-import * as DataParser from '@/handlers/DataParser';
+import * as UploadHandler from '@/handlers/UploadHandler';
 import * as ReceiptModifier from '@/handlers/ReceiptModifier';
-
 
 export default function ReceiptManager(props: {
 }) {
@@ -143,7 +142,7 @@ export default function ReceiptManager(props: {
         let receipts: IReceipt[] = [];
 
         for (let i = 0; i < files.length; i++) {
-            receipts = receipts.concat(await DataParser.parseFileToReceipts(files[i], isFirst ? firstPersonName : secondPersonName));
+            receipts = receipts.concat(await UploadHandler.parseFileToReceipts(files[i], isFirst ? firstPersonName : secondPersonName));
         }
 
         setReceipts(receipts, isFirst);

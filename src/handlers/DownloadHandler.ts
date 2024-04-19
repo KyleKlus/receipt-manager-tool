@@ -1,30 +1,8 @@
+import { Category } from "@/enums/Category";
 import { IReceipt } from "@/interfaces/IReceipt";
 import { IReceiptItem } from "@/interfaces/IReceiptItem";
 import { IResult } from "@/interfaces/IResult";
 import * as XLSX from 'xlsx';
-
-export enum Category {
-    Food,
-    Pet,
-    Household,
-    Cleaning,
-    Hygiene,
-    Sport,
-    Clothing,
-    Activities,
-    Medicine,
-    Dates,
-    Presents,
-    Stationery,
-    Travel,
-    Misc,
-    Rent,
-    Growth,
-    Formalities,
-    Leisure,
-    Discount,
-    None
-}
 
 interface IExportDataRow {
     Name: string;
@@ -35,8 +13,6 @@ interface IExportDataRow {
     IsSharedItem: boolean;
     IsRejectedItem: boolean;
 }
-
-export const DEFAULT_CATEGORY: Category = Category.Food;
 
 export function downloadCSV(name: string, myReceipts: IReceipt[], otherReceipts: IReceipt[]) {
     const data: string[] = [_prepCSVDataReceipts(myReceipts, otherReceipts)];
@@ -67,104 +43,6 @@ export function downloadEXCEL(name: string, myName: string, otherName: string, m
     XLSX.utils.book_append_sheet(wb, resultWs, 'Result_' + name);
 
     XLSX.writeFileXLSX(wb, name + '.xlsx', { type: 'file' });
-}
-
-export function parseFileToReceipts(file: File, ownerName: string): Promise<IReceipt[]> {
-    let receipts: IReceipt[] = []
-
-    let reader = new FileReader();
-
-    return new Promise((resolve, reject) => {
-        reader.onerror = () => {
-            reader.abort();
-            reject(new DOMException("Problem parsing input file."));
-        };
-
-        reader.onload = () => {
-            const result = reader.result;
-
-            if (result !== null && result !== undefined) {
-                const receiptsHeader: string[] = result.toString().split('\n')[0].split(',');
-                const receiptHeaderCount: number = receiptsHeader.length;
-                const itemHeader: string[] = receiptsHeader.reverse()[0].split('|');
-                const itemHeaderCount: number = itemHeader.length;
-                const receiptsAsText: string[] = result.toString().split('\n').slice(1).filter((item) => { return item.length > 1 });
-
-                for (let i: number = 0; i < receiptsAsText.length; i++) {
-                    const receipt: string[] = receiptsAsText[i].split(',');
-                    const receiptItems: string[][] = _listToMatrix(receipt.slice(receiptHeaderCount).join('').replaceAll('"', '').split('|'), itemHeaderCount).filter((item) => { return item.length > 1 });
-
-                    let totalPrice = 0;
-
-                    let parsedReceiptItems: IReceiptItem[] = receiptItems.map(list => {
-                        let itemName = _firstCharToUppercase(list[0]);
-                        itemName = itemName !== '' ? itemName : 'Unrecognized Item';
-                        const itemAmount: number = list[5] === '' ? 1 : Math.floor(parseFloat(list[5]) * 100) / 100;
-                        // NOTE: * -100 because all parsed prices have a - sign
-                        const price: number = Math.floor(parseFloat(list[2]) * -100) / 100;
-                        totalPrice += price;
-
-                        return {
-                            name: itemName,
-                            isMine: false,
-                            isShared: true,
-                            isRejected: false,
-                            price: itemName === 'Unrecognized Item' ? 0 : Math.round(price * 100) / 100,
-                            amount: itemName === 'Unrecognized Item' ? 0 : itemAmount,
-                            category: itemName === 'Unrecognized Item' ? Category.None : price < 0 ? Category.Discount : DEFAULT_CATEGORY
-                        }
-                    })
-
-                    // Add store name to receipt
-                    let storeName = _firstCharToUppercase(receipt[3]);
-                    storeName = storeName !== '' ? storeName : 'Unrecognized Store';
-
-                    const parsedReceipt: IReceipt = {
-                        store: storeName,
-                        owner: ownerName,
-                        categoryForAllItems: Category.None,
-                        isAllShared: false,
-                        isAllRejected: false,
-                        isAllMine: false,
-                        totalPrice: storeName === 'Unrecognized Store' ? 0 : Math.round(totalPrice * 100) / 100,
-                        items: storeName === 'Unrecognized Store' ? [] : parsedReceiptItems,
-                    }
-
-                    receipts = receipts.concat(parsedReceipt)
-                }
-            }
-
-            resolve(receipts);
-        };
-
-        reader.readAsText(file);
-    });
-}
-
-function _listToMatrix(list: string[], elementsPerSubArray: number) {
-    const matrix: string[][] = [];
-    let k = -1;
-
-    for (let i = 0; i < list.length; i++) {
-        if (i % elementsPerSubArray === 0) {
-            k++;
-            matrix[k] = [];
-        }
-
-        matrix[k].push(list[i]);
-    }
-
-    return matrix;
-}
-
-function _firstCharToUppercase(text: string): string {
-    if (text !== undefined && text !== '' && text.length > 1) {
-        // Make first letter of text uppercase
-        const firstLetterOfText: string = text[0].toUpperCase();
-        const restOfText: string = text.slice(1);
-        return firstLetterOfText + restOfText;
-    }
-    return '';
 }
 
 function _prepDataReceipts(myReceipts: IReceipt[], otherReceipts: IReceipt[]): IExportDataRow[] {

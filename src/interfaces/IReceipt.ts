@@ -1,8 +1,9 @@
-import { Category } from "@/handlers/DataParser";
+import { Category } from "@/enums/Category";
 import { IReceiptItem } from "./IReceiptItem";
 
 export interface IReceipt {
     store: string;
+    date: string;
     owner: string;
     totalPrice: number;
     items: IReceiptItem[];

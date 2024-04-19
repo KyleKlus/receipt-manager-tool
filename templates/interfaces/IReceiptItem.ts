@@ -1,4 +1,4 @@
-import { Category } from "@/handlers/DataParser";
+import { Category } from "@/enums/Category";
 
 
 export interface IReceiptItem {

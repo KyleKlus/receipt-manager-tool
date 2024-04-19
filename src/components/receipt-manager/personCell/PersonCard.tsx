@@ -3,12 +3,13 @@ import styles from '@/styles/components/receipt-manager/personCell/PersonCard.mo
 import { ChangeEvent, useState } from 'react';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import { IReceipt } from '@/interfaces/IReceipt';
-import * as DataParser from '@/handlers/DataParser';
+import * as DownloadHandler from '@/handlers/DownloadHandler';
 import * as Calculator from '@/handlers/Calculator';
 import ReceiptsOverview from './ReceiptsOverview';
 import moment from 'moment';
 import { IResult } from '@/interfaces/IResult';
 import { Download, Plus, Upload, X } from 'lucide-react';
+import { DEFAULT_CATEGORY } from '@/enums/Category';
 
 export default function PersonCard(props: {
     myName: string,
@@ -70,7 +71,7 @@ export default function PersonCard(props: {
             isMine: false,
             isShared: true,
             isRejected: false,
-            category: DataParser.DEFAULT_CATEGORY
+            category: DEFAULT_CATEGORY
         }
 
         const newReceipt: IReceipt = {
@@ -78,7 +79,7 @@ export default function PersonCard(props: {
             owner: myName,
             totalPrice: newItemPrice,
             items: [newItem],
-            categoryForAllItems: DataParser.DEFAULT_CATEGORY,
+            categoryForAllItems: DEFAULT_CATEGORY,
             isAllShared: false,
             isAllRejected: false,
             isAllMine: false
@@ -135,7 +136,7 @@ export default function PersonCard(props: {
                         result: result
                     };
 
-                    DataParser.downloadEXCEL('Expenses_' + moment().format('DD_MM_YYYY'), myName, otherName, myReceipts, otherReceipts, resultData);
+                    DownloadHandler.downloadEXCEL('Expenses_' + moment().format('DD_MM_YYYY'), myName, otherName, myReceipts, otherReceipts, resultData);
                 }}>
                     <Download width={16} /> Export
                 </button>
