@@ -9,12 +9,45 @@ interface IDataRow {
     itemsData: string[]
 }
 
+export interface IExcelImportData {
+    firstName: string;
+    secondName: string;
+    firstReceipts: IReceipt[];
+    secondReceipts: IReceipt[];
+}
+
 const receiptDataSet = new Set(['Date', 'Store', 'Description']);
 const itemDataSet = new Set(['Name', 'Price', 'Amount',]);
 const unrecognizedStoreName = 'Unrecognized Store';
 const unrecognizedItemName = 'Unrecognized Item';
 
-export function parseFileToReceipts(file: File, ownerName: string): Promise<IReceipt[]> {
+
+
+export async function parseXLSXToReceipts(file: File): Promise<IExcelImportData> {
+    let receipts: IExcelImportData = {
+        firstName: '',
+        secondName: '',
+        firstReceipts: [],
+        secondReceipts: []
+    }
+
+    const workbook = XLSX.read(await file.arrayBuffer());
+    receipts.firstName = workbook.SheetNames[3].replace(' Receipts', '');
+    receipts.secondName = workbook.SheetNames[4].replace(' Receipts', '');
+
+    const firstWorkSheet = workbook.Sheets[workbook.SheetNames[3]];
+    const secondWorkSheet = workbook.Sheets[workbook.SheetNames[4]];
+
+    const firstRawData: any[][] = (XLSX.utils.sheet_to_json(firstWorkSheet, { header: 1 }) as any[][]).slice(1);
+    const secondRawData: any[][] = (XLSX.utils.sheet_to_json(secondWorkSheet, { header: 1 }) as any[][]).slice(1);
+
+    receipts.firstReceipts = _parseRawExcelData(firstRawData, receipts.firstName);
+    receipts.secondReceipts = _parseRawExcelData(secondRawData, receipts.secondName);
+
+    return receipts;
+}
+
+export function parseCSVToReceipts(file: File, ownerName: string): Promise<IReceipt[]> {
     let receipts: IReceipt[] = []
 
     let reader = new FileReader();
@@ -95,6 +128,40 @@ export function parseFileToReceipts(file: File, ownerName: string): Promise<IRec
 
         reader.readAsText(file);
     });
+}
+
+function _parseRawExcelData(data: any[][], owner: string): IReceipt[] {
+    const receipts: IReceipt[] = [];
+    for (let index = 0; index < data.length; index++) {
+        const row = data[index];
+
+        if (row[2] === 0) {
+            const newReceipt: IReceipt = {
+                store: row[0],
+                date: '',
+                owner: owner,
+                categoryForAllItems: Category[row[3] as keyof typeof Category],
+                isAllMine: row[4],
+                isAllShared: row[5],
+                isAllRejected: row[6],
+                totalPrice: row[1],
+                items: []
+            }
+            receipts.push(newReceipt)
+        } else {
+            const newItem: IReceiptItem = {
+                name: row[0],
+                price: row[1],
+                amount: row[2],
+                category: Category[row[3] as keyof typeof Category],
+                isMine: row[4],
+                isShared: row[5],
+                isRejected: row[6]
+            }
+            receipts[receipts.length - 1].items.push(newItem)
+        }
+    }
+    return receipts;
 }
 
 function _extractRelevantIndices(dataHeaders: string[], relevantDataSet: Set<string>): number[] {

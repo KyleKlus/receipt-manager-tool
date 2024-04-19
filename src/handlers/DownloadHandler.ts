@@ -4,7 +4,7 @@ import { IReceiptItem } from "@/interfaces/IReceiptItem";
 import { IResult } from "@/interfaces/IResult";
 import * as XLSX from 'xlsx';
 
-interface IExportDataRow {
+interface IExportExpensesRow {
     Name: string;
     Price: number;
     Amount: number;
@@ -25,34 +25,89 @@ export function downloadCSV(name: string, myReceipts: IReceipt[], otherReceipts:
     link.click();
 }
 
-export function downloadEXCEL(name: string, myName: string, otherName: string, myReceipts: IReceipt[], otherReceipts: IReceipt[], result: IResult) {
-    const myData: IExportDataRow[] = _prepDataReceipts(myReceipts, otherReceipts);
-    const otherData: IExportDataRow[] = _prepDataReceipts(otherReceipts, myReceipts);
-    const resultData: any[] = _prepDataTotal(result);
+export function downloadEXCEL(name: string, myName: string, otherName: string, myReceipts: IReceipt[], otherReceipts: IReceipt[], resultData: IResult) {
+    const myReceiptsCopy = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[];
+    const otherReceiptsCopy = JSON.parse(JSON.stringify(otherReceipts)) as IReceipt[];
+    const myExpenses: IExportExpensesRow[] = _prepExpenses(myReceiptsCopy, otherReceiptsCopy);
+    const myReceiptsExport: IExportExpensesRow[] = _convertReceiptsToList(myReceiptsCopy);
+    const otherExpenses: IExportExpensesRow[] = _prepExpenses(otherReceiptsCopy, myReceiptsCopy);
+    const otherReceiptsExport: IExportExpensesRow[] = _convertReceiptsToList(otherReceiptsCopy);
+    const result: any[] = _prepResult(resultData);
 
-    if (name === undefined || name === '' || myData.length === 0) { return; }
-
+    if (name === undefined || name === '' || myExpenses.length === 0) { return; }
 
     const wb = XLSX.utils.book_new();
-    const myWs = XLSX.utils.json_to_sheet(myData);
-    const otherWs = XLSX.utils.json_to_sheet(otherData);
-    const resultWs = XLSX.utils.json_to_sheet(resultData);
+    const myExpensesWs = XLSX.utils.json_to_sheet(myExpenses);
+    const myReceiptsWs = XLSX.utils.json_to_sheet(myReceiptsExport);
+    const otherExpensesWs = XLSX.utils.json_to_sheet(otherExpenses);
+    const otherReceiptsWs = XLSX.utils.json_to_sheet(otherReceiptsExport);
+    const resultWs = XLSX.utils.json_to_sheet(result);
 
-    XLSX.utils.book_append_sheet(wb, myWs, myName + '_' + name);
-    XLSX.utils.book_append_sheet(wb, otherWs, otherName + '_' + name);
-    XLSX.utils.book_append_sheet(wb, resultWs, 'Result_' + name);
+    XLSX.utils.book_append_sheet(wb, myExpensesWs, myName + ' Expenses');
+    XLSX.utils.book_append_sheet(wb, otherExpensesWs, otherName + ' Expenses');
+    XLSX.utils.book_append_sheet(wb, resultWs, 'Result');
+    XLSX.utils.book_append_sheet(wb, myReceiptsWs, myName + ' Receipts');
+    XLSX.utils.book_append_sheet(wb, otherReceiptsWs, otherName + ' Receipts');
 
     XLSX.writeFileXLSX(wb, name + '.xlsx', { type: 'file' });
 }
 
-function _prepDataReceipts(myReceipts: IReceipt[], otherReceipts: IReceipt[]): IExportDataRow[] {
+function _convertReceiptsToList(myReceipts: IReceipt[]): IExportExpensesRow[] {
+    if (myReceipts === undefined) { return []; }
+    if (myReceipts.length === 0) { return []; }
+
+    const receipts = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[]
+
+    const data: IExportExpensesRow[] = []
+
+    for (let index = 0; index < receipts.length; index++) {
+        const receipt = receipts[index];
+        const parsedReceiptCategory = JSON.stringify(receipt.categoryForAllItems).replace('"', '').replace('"', '')
+
+        data.push({
+            Name: receipt.store,
+            Price: receipt.totalPrice,
+            Amount: 0,
+            Category: isNumeric(parsedReceiptCategory) ? Category[receipt.categoryForAllItems] : parsedReceiptCategory,
+            IsMyItem: receipt.isAllMine,
+            IsSharedItem: receipt.isAllShared,
+            IsRejectedItem: receipt.isAllRejected,
+        })
+
+        for (let jndex = 0; jndex < receipt.items.length; jndex++) {
+            const item = receipt.items[jndex];
+            const parsedCategory = JSON.stringify(item.category).replace('"', '').replace('"', '')
+            data.push({
+                Name: item.name,
+                Price: item.price,
+                Amount: item.amount,
+                Category: isNumeric(parsedCategory) ? Category[item.category] : parsedCategory,
+                IsMyItem: item.isMine,
+                IsSharedItem: item.isShared,
+                IsRejectedItem: item.isRejected,
+            })
+        }
+    }
+
+    return data;
+}
+
+function isNumeric(str: string): boolean {
+    return !Number.isNaN(Number(str));
+}
+
+function _prepExpenses(myReceipts: IReceipt[], otherReceipts: IReceipt[]): IExportExpensesRow[] {
     if (myReceipts === undefined || otherReceipts === undefined) { return []; }
     if (myReceipts.length === 0 && otherReceipts.length === 0) { return []; }
 
     let filteredList: IReceiptItem[] = []
     let otherFilteredList: IReceiptItem[] = [];
 
-    myReceipts.slice(0).forEach((itemArray) => {
+    const firstReceipts = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[];
+
+    const secondReceipts = JSON.parse(JSON.stringify(otherReceipts)) as IReceipt[];
+
+    firstReceipts.forEach((itemArray) => {
         for (let index = 0; index < itemArray.items.length; index++) {
             const item = itemArray.items[index];
             if (item.isRejected) { continue; }
@@ -63,7 +118,7 @@ function _prepDataReceipts(myReceipts: IReceipt[], otherReceipts: IReceipt[]): I
         }
     });
 
-    otherReceipts.slice(0).forEach((itemArray) => {
+    secondReceipts.forEach((itemArray) => {
         for (let index = 0; index < itemArray.items.length; index++) {
             const item = itemArray.items[index];
             if (item.isMine) { continue; }
@@ -74,12 +129,13 @@ function _prepDataReceipts(myReceipts: IReceipt[], otherReceipts: IReceipt[]): I
         }
     });
 
-    const data: IExportDataRow[] = filteredList.concat(otherFilteredList).slice(0).map((e) => {
-        const row: IExportDataRow = {
+    const data: IExportExpensesRow[] = filteredList.concat(otherFilteredList).slice(0).map((e) => {
+        const parsedCategory = JSON.stringify(e.category).replace('"', '').replace('"', '')
+        const row: IExportExpensesRow = {
             Name: e.name,
             Price: e.price,
             Amount: e.amount,
-            Category: Category[e.category],
+            Category: isNumeric(parsedCategory) ? Category[e.category] : parsedCategory,
             IsMyItem: e.isMine,
             IsSharedItem: e.isShared,
             IsRejectedItem: e.isRejected,
@@ -90,7 +146,7 @@ function _prepDataReceipts(myReceipts: IReceipt[], otherReceipts: IReceipt[]): I
     return data;
 }
 
-function _prepDataTotal(resultData: IResult): any[] {
+function _prepResult(resultData: IResult): any[] {
 
     if (resultData === undefined) { return []; }
 
@@ -139,7 +195,7 @@ function _prepCSVDataReceipts(myReceipts: IReceipt[], otherReceipts: IReceipt[])
     if (myReceipts === undefined || otherReceipts === undefined) { return dataString; }
     if (myReceipts.length === 0 && otherReceipts.length === 0) { return dataString; }
 
-    const data = _prepDataReceipts(myReceipts, otherReceipts);
+    const data = _prepExpenses(myReceipts, otherReceipts);
 
     if (data.length === 0) { return dataString; }
 

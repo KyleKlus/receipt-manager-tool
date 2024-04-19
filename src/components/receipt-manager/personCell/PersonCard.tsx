@@ -1,6 +1,6 @@
 /** @format */
 import styles from '@/styles/components/receipt-manager/personCell/PersonCard.module.css';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import { IReceipt } from '@/interfaces/IReceipt';
 import * as DownloadHandler from '@/handlers/DownloadHandler';
@@ -77,6 +77,7 @@ export default function PersonCard(props: {
         const newReceipt: IReceipt = {
             store: newItemStore,
             owner: myName,
+            date: moment().format('DD.MM.YYYY'),
             totalPrice: newItemPrice,
             items: [newItem],
             categoryForAllItems: DEFAULT_CATEGORY,
@@ -92,6 +93,24 @@ export default function PersonCard(props: {
         setNewItemName('');
         setNewItemPrice(NaN);
         setNewItemAmount(1);
+    }
+
+    function handleDownLoad() {
+        const resultData: IResult = {
+            payerName: result <= 0 ? otherName : myName,
+            receiverName: result <= 0 ? myName : otherName,
+            payerExpenses: result <= 0 ? otherReceiptsExpenses : myReceiptsExpenses,
+            receiverExpenses: result <= 0 ? myReceiptsExpenses : otherReceiptsExpenses,
+            sharedFromPayer: result <= 0 ? sharedFromOther : sharedFromMe,
+            sharedFromReceiver: result <= 0 ? sharedFromMe : sharedFromOther,
+            payerItemsFromPayer: result <= 0 ? otherItemsFromOther : myItemsFromMe,
+            receiverItemsFromReceiver: result <= 0 ? myItemsFromMe : otherItemsFromOther,
+            receiverItemsFromPayer: result <= 0 ? myItemsFromOther : otherItemsFromMe,
+            payerItemsFromReceiver: result <= 0 ? otherItemsFromMe : myItemsFromOther,
+            result: result
+        };
+
+        DownloadHandler.downloadEXCEL('Expenses_' + moment().format('DD_MM_YYYY'), myName, otherName, myReceipts.slice(0), props.otherReceipts.slice(0), resultData);
     }
 
     return (
@@ -121,23 +140,7 @@ export default function PersonCard(props: {
                 }}>
                     <Upload width={16} /> Upload
                 </button>
-                <button disabled={myReceipts.length === 0 && otherReceipts.length === 0} className={[styles.fancyButton].join('')} onClick={() => {
-                    const resultData: IResult = {
-                        payerName: result <= 0 ? otherName : myName,
-                        receiverName: result <= 0 ? myName : otherName,
-                        payerExpenses: result <= 0 ? otherReceiptsExpenses : myReceiptsExpenses,
-                        receiverExpenses: result <= 0 ? myReceiptsExpenses : otherReceiptsExpenses,
-                        sharedFromPayer: result <= 0 ? sharedFromOther : sharedFromMe,
-                        sharedFromReceiver: result <= 0 ? sharedFromMe : sharedFromOther,
-                        payerItemsFromPayer: result <= 0 ? otherItemsFromOther : myItemsFromMe,
-                        receiverItemsFromReceiver: result <= 0 ? myItemsFromMe : otherItemsFromOther,
-                        receiverItemsFromPayer: result <= 0 ? myItemsFromOther : otherItemsFromMe,
-                        payerItemsFromReceiver: result <= 0 ? otherItemsFromMe : myItemsFromOther,
-                        result: result
-                    };
-
-                    DownloadHandler.downloadEXCEL('Expenses_' + moment().format('DD_MM_YYYY'), myName, otherName, myReceipts, otherReceipts, resultData);
-                }}>
+                <button disabled={myReceipts.length === 0 && otherReceipts.length === 0} className={[styles.fancyButton].join('')} onClick={handleDownLoad}>
                     <Download width={16} /> Export
                 </button>
                 <button className={[styles.fancyButton].join('')} onClick={() => {
@@ -147,7 +150,7 @@ export default function PersonCard(props: {
                 </button>
 
 
-                <input type='file' id={isFirst ? 'firstUpload' : 'secondUpload'} accept='.csv' multiple={true} onChange={handleFileUpload} style={{ display: 'none' }} />
+                <input type='file' id={isFirst ? 'firstUpload' : 'secondUpload'} accept='.csv, .xlsx' multiple={true} onChange={handleFileUpload} style={{ display: 'none' }} />
             </div>
             <div className={[styles.personAddItemWrapper].join(' ')}>
                 <input placeholder='Store' type='text' value={newItemStore}

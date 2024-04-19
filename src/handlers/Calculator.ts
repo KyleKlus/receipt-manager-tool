@@ -3,7 +3,9 @@ import { IReceipt } from "@/interfaces/IReceipt";
 export function calcReceiptsExpenses(receipts: IReceipt[]): number {
     let expenses: number = 0;
 
-    receipts.forEach((receipt) => {
+    const receiptsCopy = JSON.parse(JSON.stringify(receipts)) as IReceipt[];
+
+    receiptsCopy.forEach((receipt) => {
         expenses += receipt.totalPrice;
     })
 
@@ -12,8 +14,9 @@ export function calcReceiptsExpenses(receipts: IReceipt[]): number {
 
 export function calcPersonalExpenses(receipts: IReceipt[]): number {
     let expenses: number = 0;
+    const receiptsCopy = JSON.parse(JSON.stringify(receipts)) as IReceipt[];
 
-    receipts.forEach((receipt) => {
+    receiptsCopy.forEach((receipt) => {
         receipt.items.forEach((item) => {
             if (item.isMine) {
                 expenses += item.price;
@@ -26,8 +29,9 @@ export function calcPersonalExpenses(receipts: IReceipt[]): number {
 
 export function calcSharedExpenses(receipts: IReceipt[]): number {
     let expenses: number = 0;
+    const receiptsCopy = JSON.parse(JSON.stringify(receipts)) as IReceipt[];
 
-    receipts.forEach((receipt) => {
+    receiptsCopy.forEach((receipt) => {
         receipt.items.forEach((item) => {
             if (item.isShared) {
                 expenses += item.price / 2;
@@ -40,8 +44,9 @@ export function calcSharedExpenses(receipts: IReceipt[]): number {
 
 export function calcRejectedExpenses(receipts: IReceipt[]): number {
     let expenses: number = 0;
+    const receiptsCopy = JSON.parse(JSON.stringify(receipts)) as IReceipt[];
 
-    receipts.forEach((receipt) => {
+    receiptsCopy.forEach((receipt) => {
         receipt.items.forEach((item) => {
             if (item.isRejected) {
                 expenses += item.price;

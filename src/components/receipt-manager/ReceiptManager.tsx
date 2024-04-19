@@ -8,6 +8,7 @@ import { Category } from "@/enums/Category";
 import useStorage from '@/hooks/useStorage';
 import * as UploadHandler from '@/handlers/UploadHandler';
 import * as ReceiptModifier from '@/handlers/ReceiptModifier';
+import { IExcelImportData } from '@/handlers/UploadHandler';
 
 export default function ReceiptManager(props: {
 }) {
@@ -139,13 +140,23 @@ export default function ReceiptManager(props: {
     async function uploadFile(files: FileList | null, isFirst: boolean): Promise<void> {
         if (files === null || files === undefined) { return; }
 
-        let receipts: IReceipt[] = [];
-
         for (let i = 0; i < files.length; i++) {
-            receipts = receipts.concat(await UploadHandler.parseFileToReceipts(files[i], isFirst ? firstPersonName : secondPersonName));
+            if (files[i].name.endsWith('csv')) {
+                const receipts = getReceipts(isFirst).concat(await UploadHandler.parseCSVToReceipts(files[i], isFirst ? firstPersonName : secondPersonName));
+                setReceipts(receipts, isFirst);
+            } else if (files[i].name.endsWith('xlsx')) {
+                const excelImportData: IExcelImportData = await UploadHandler.parseXLSXToReceipts(files[i]);
+
+                if (firstPersonName === excelImportData.firstName) {
+                    setReceipts(excelImportData.firstReceipts, true);
+                    setReceipts(excelImportData.secondReceipts, false);
+                } else if (secondPersonName === excelImportData.firstName) {
+                    setReceipts(excelImportData.firstReceipts, false);
+                    setReceipts(excelImportData.secondReceipts, true);
+                }
+            }
         }
 
-        setReceipts(receipts, isFirst);
     }
 
     return (
