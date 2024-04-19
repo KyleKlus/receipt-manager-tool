@@ -114,10 +114,13 @@ function _extractRelevantData(row: string[], indices: number[]): string[] {
 
 function _convertDataStringToDataRows(textRows: string[]): IDataRow[] {
     return textRows.map(rowText => {
-        const commaSplit = rowText.split(',');
+        const split = rowText.split('|');
+        const commaSide = split[0].split(',').slice(0, -1);
+        let barSide = [split[0].split(',').reverse()[0]];
+        barSide = barSide.concat(split.slice(1));
         return {
-            receiptData: commaSplit.slice(0, -1),
-            itemsData: commaSplit.slice(-1, commaSplit.length)[0].split('|')
+            receiptData: commaSide,
+            itemsData: barSide
         };
     });
 }
