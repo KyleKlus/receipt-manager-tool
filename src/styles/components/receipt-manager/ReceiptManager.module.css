@@ -133,7 +133,7 @@
 @media (prefers-reduced-motion) {}
 
 
-@media (max-width: 940px) {
+@media (max-width: 990px) {
     .split {
         flex-wrap: wrap;
     }

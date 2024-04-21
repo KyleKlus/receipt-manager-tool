@@ -209,6 +209,15 @@ button,
   transition: background 250ms ease;
 }
 
+button:active,
+.buttonClass:active,
+.buttonClass .isActive,
+button .isActive {
+  background: var(--bg-color-05);
+  box-shadow: var(--shadowElevation_2);
+  outline: 1.5px solid var(--bg-color-30);
+}
+
 input[type=text],
 textarea,
 input[type=password],

@@ -19,9 +19,12 @@ export default function ReceiptManager(props: {
 
     const [firstPersonName, setFirstPersonName] = useState<string>('');
     const [firstReceipts, setFirstReceipts] = useState<IReceipt[]>([]);
+    const [isFristInEditMode, setIsFirstInEditMode] = useState<boolean>(false);
 
     const [secondPersonName, setSecondPersonName] = useState<string>('');
     const [secondReceipts, setSecondReceipts] = useState<IReceipt[]>([]);
+    const [isSecondInEditMode, setIsSecondInEditMode] = useState<boolean>(false);
+
     const [isLocalDataLoaded, setIsLocalDataLoaded] = useState<boolean>(false);
 
     useEffect(() => {
@@ -85,6 +88,26 @@ export default function ReceiptManager(props: {
         } else {
             saveSecondReceipts([...receipts]);
         }
+    }
+
+    function setItemPrice(receiptNum: number, itemNum: number, isFirstList: boolean, newPrice: number) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.setItemPrice(receipts, receiptNum, itemNum, newPrice), isFirstList);
+    }
+
+    function setItemAmount(receiptNum: number, itemNum: number, isFirstList: boolean, amount: number) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.setItemAmount(receipts, receiptNum, itemNum, amount), isFirstList);
+    }
+
+    function setItemName(receiptNum: number, itemNum: number, isFirstList: boolean, name: string) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.setItemName(receipts, receiptNum, itemNum, name), isFirstList);
+    }
+
+    function setStoreName(receiptNum: number, isFirstList: boolean, store: string) {
+        const receipts: IReceipt[] = getReceipts(isFirstList);
+        setReceipts(ReceiptModifier.setStoreName(receipts, receiptNum, store), isFirstList);
     }
 
     function selectCategory(receiptNum: number, itemNum: number, isFirstList: boolean, selectedCategory: Category) {
@@ -171,6 +194,7 @@ export default function ReceiptManager(props: {
                     setPersonName={saveFirstPersonName}
                     setReceipts={setReceipts}
                     uploadFile={uploadFile}
+
                 />
                 <PersonCard
                     myName={secondPersonName}
@@ -181,6 +205,7 @@ export default function ReceiptManager(props: {
                     setPersonName={saveSecondPersonName}
                     setReceipts={setReceipts}
                     uploadFile={uploadFile}
+
                 />
             </div>
             {firstReceipts.length !== 0 &&
@@ -189,6 +214,7 @@ export default function ReceiptManager(props: {
                     otherName={secondPersonName}
                     isFirst={true}
                     myReceipts={firstReceipts}
+                    isInEditMode={isFristInEditMode}
                     toggleAllMyItems={toggleAllMyItems}
                     toggleAllSharedItems={toggleAllSharedItems}
                     toggleAllRejectedItems={toggleAllRejectedItems}
@@ -199,6 +225,11 @@ export default function ReceiptManager(props: {
                     deleteReceipt={deleteReceipt}
                     deleteItem={deleteItem}
                     selectCategory={selectCategory}
+                    setItemAmount={setItemAmount}
+                    setItemPrice={setItemPrice}
+                    setItemName={setItemName}
+                    setStoreName={setStoreName}
+                    setIsInEditMode={setIsFirstInEditMode}
                 />
             }
             {secondReceipts.length !== 0 &&
@@ -207,6 +238,7 @@ export default function ReceiptManager(props: {
                     otherName={firstPersonName}
                     isFirst={false}
                     myReceipts={secondReceipts}
+                    isInEditMode={isSecondInEditMode}
                     toggleAllMyItems={toggleAllMyItems}
                     toggleAllSharedItems={toggleAllSharedItems}
                     toggleAllRejectedItems={toggleAllRejectedItems}
@@ -217,6 +249,11 @@ export default function ReceiptManager(props: {
                     deleteReceipt={deleteReceipt}
                     deleteItem={deleteItem}
                     selectCategory={selectCategory}
+                    setItemAmount={setItemAmount}
+                    setItemPrice={setItemPrice}
+                    setItemName={setItemName}
+                    setStoreName={setStoreName}
+                    setIsInEditMode={setIsSecondInEditMode}
                 />
             }
         </div>

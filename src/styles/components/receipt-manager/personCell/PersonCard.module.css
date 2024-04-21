@@ -19,6 +19,7 @@
     justify-content: center;
     align-items: center;
     gap: 16px;
+    padding: 0 16px;
 }
 
 .personName {
@@ -39,6 +40,12 @@
     gap: 6px;
 }
 
+.isActive {
+    background: var(--bg-color-05);
+    box-shadow: var(--shadowElevation_2);
+    outline: 1.5px solid var(--bg-color-30);
+}
+
 .personAddItemWrapper {
     display: flex;
     flex-wrap: wrap;
@@ -49,7 +56,7 @@
     gap: 16px;
 }
 
-.hBox{
+.hBox {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;

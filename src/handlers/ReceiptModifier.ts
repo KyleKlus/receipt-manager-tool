@@ -3,6 +3,31 @@ import { IReceipt } from "@/interfaces/IReceipt";
 import { IReceiptItem } from "@/interfaces/IReceiptItem";
 
 
+export function setStoreName(receipts: IReceipt[], receiptNum: number, store: string): IReceipt[] {
+    const updatedList: IReceipt[] = receipts;
+    updatedList[receiptNum].store = store;
+    return updatedList;
+}
+
+export function setItemName(receipts: IReceipt[], receiptNum: number, itemNum: number, name: string): IReceipt[] {
+    const updatedList: IReceipt[] = receipts;
+    updatedList[receiptNum].items[itemNum].name = name;
+    return updatedList;
+}
+
+export function setItemAmount(receipts: IReceipt[], receiptNum: number, itemNum: number, amount: number): IReceipt[] {
+    const updatedList: IReceipt[] = receipts;
+    updatedList[receiptNum].items[itemNum].amount = amount;
+    return updatedList;
+}
+
+export function setItemPrice(receipts: IReceipt[], receiptNum: number, itemNum: number, newPrice: number): IReceipt[] {
+    const updatedList: IReceipt[] = receipts;
+    updatedList[receiptNum].totalPrice = updatedList[receiptNum].totalPrice - updatedList[receiptNum].items[itemNum].price + newPrice;
+    updatedList[receiptNum].items[itemNum].price = newPrice;
+    return updatedList;
+}
+
 export function selectCategory(receipts: IReceipt[], receiptNum: number, itemNum: number, selectedCategory: Category): IReceipt[] {
     const updatedList: IReceipt[] = receipts;
 

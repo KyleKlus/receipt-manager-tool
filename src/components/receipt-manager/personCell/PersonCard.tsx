@@ -8,7 +8,7 @@ import * as Calculator from '@/handlers/Calculator';
 import ReceiptsOverview from './ReceiptsOverview';
 import moment from 'moment';
 import { IResult } from '@/interfaces/IResult';
-import { Download, Plus, Upload, X } from 'lucide-react';
+import { Download, Plus, Upload, X, Pencil } from 'lucide-react';
 import { DEFAULT_CATEGORY } from '@/enums/Category';
 
 export default function PersonCard(props: {
@@ -17,9 +17,9 @@ export default function PersonCard(props: {
     isFirst: boolean,
     myReceipts: IReceipt[],
     otherReceipts: IReceipt[],
-    setPersonName: (name: string, isFirst: boolean) => void;
-    setReceipts: (receipts: IReceipt[], isFirst: boolean) => void;
-    uploadFile: (files: FileList | null, isFirst: boolean) => Promise<void>;
+    setPersonName: (name: string, isFirst: boolean) => void,
+    setReceipts: (receipts: IReceipt[], isFirst: boolean) => void,
+    uploadFile: (files: FileList | null, isFirst: boolean) => Promise<void>,
 }) {
     const {
         myName,
@@ -29,7 +29,7 @@ export default function PersonCard(props: {
         otherReceipts,
         setPersonName,
         setReceipts,
-        uploadFile
+        uploadFile,
     } = props;
 
     const [newItemStore, setNewItemStore] = useState<string>('');
@@ -143,13 +143,12 @@ export default function PersonCard(props: {
                 <button disabled={myReceipts.length === 0 && otherReceipts.length === 0} className={[styles.fancyButton].join('')} onClick={handleDownLoad}>
                     <Download width={16} /> Export
                 </button>
+
                 <button className={[styles.fancyButton].join('')} onClick={() => {
                     setReceipts([], isFirst);
                 }}>
                     <X width={16} /> Clear
                 </button>
-
-
                 <input type='file' id={isFirst ? 'firstUpload' : 'secondUpload'} accept='.csv, .xlsx' multiple={true} onChange={handleFileUpload} style={{ display: 'none' }} />
             </div>
             <div className={[styles.personAddItemWrapper].join(' ')}>
@@ -196,8 +195,6 @@ export default function PersonCard(props: {
                         handleAddItem();
                     }}><Plus width={16} /> Add</button>
                 </div>
-
-
             </div>
         </div>
     );
