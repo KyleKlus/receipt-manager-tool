@@ -9,6 +9,7 @@ import useStorage from '@/hooks/useStorage';
 import * as UploadHandler from '@/handlers/UploadHandler';
 import * as ReceiptModifier from '@/handlers/ReceiptModifier';
 import { IExcelImportData } from '@/handlers/UploadHandler';
+import EditReceiptsTable from './personCell/EditReceiptsTable';
 
 export default function ReceiptManager(props: {
 }) {
@@ -90,74 +91,12 @@ export default function ReceiptManager(props: {
         }
     }
 
-    function setItemPrice(receiptNum: number, itemNum: number, isFirstList: boolean, newPrice: number) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.setItemPrice(receipts, receiptNum, itemNum, newPrice), isFirstList);
-    }
-
-    function setItemAmount(receiptNum: number, itemNum: number, isFirstList: boolean, amount: number) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.setItemAmount(receipts, receiptNum, itemNum, amount), isFirstList);
-    }
-
-    function setItemName(receiptNum: number, itemNum: number, isFirstList: boolean, name: string) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.setItemName(receipts, receiptNum, itemNum, name), isFirstList);
-    }
-
-    function setStoreName(receiptNum: number, isFirstList: boolean, store: string) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.setStoreName(receipts, receiptNum, store), isFirstList);
-    }
-
-    function selectCategory(receiptNum: number, itemNum: number, isFirstList: boolean, selectedCategory: Category) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.selectCategory(receipts, receiptNum, itemNum, selectedCategory), isFirstList);
-    }
-
-    function toggleRejectItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.toggleRejectItem(receipts, receiptNum, itemNum), isFirstList);
-    }
-
-    function toggleShareItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.toggleShareItem(receipts, receiptNum, itemNum), isFirstList);
-    }
-
-    function toggleMyItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.toggleMyItem(receipts, receiptNum, itemNum), isFirstList);
-    }
-
-    function deleteItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.deleteItem(receipts, receiptNum, itemNum), isFirstList);
-    }
-
-    function selectCategoryForAllItems(receiptNum: number, isFirstList: boolean, selectedCategory: Category) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.selectCategoryForAllItems(receipts, receiptNum, selectedCategory), isFirstList);
-    }
-
-    function toggleAllRejectedItems(receiptNum: number, isFirstList: boolean) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.toggleAllRejectedItems(receipts, receiptNum), isFirstList);
-    }
-
-    function toggleAllSharedItems(receiptNum: number, isFirstList: boolean) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.toggleAllSharedItems(receipts, receiptNum), isFirstList);
-    }
-
-    function toggleAllMyItems(receiptNum: number, isFirstList: boolean) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.toggleAllMyItems(receipts, receiptNum), isFirstList);
-    }
-
-    function deleteReceipt(receiptNum: number, isFirstList: boolean) {
-        const receipts: IReceipt[] = getReceipts(isFirstList);
-        setReceipts(ReceiptModifier.deleteReceipt(receipts, receiptNum), isFirstList);
+    function setIsInEditMode(isInEditMode: boolean, isFirst: boolean) {
+        if (isFirst) {
+            setIsFirstInEditMode(isInEditMode);
+        } else {
+            setIsSecondInEditMode(isInEditMode);
+        }
     }
 
     async function uploadFile(files: FileList | null, isFirst: boolean): Promise<void> {
@@ -179,7 +118,28 @@ export default function ReceiptManager(props: {
                 }
             }
         }
+    }
 
+    function getReceiptsTable(isInEditMode: boolean, myName: string, otherName: string, isFirst: boolean, myReceipts: IReceipt[]): JSX.Element {
+        return isInEditMode
+            ? <EditReceiptsTable
+                myName={myName}
+                isFirst={isFirst}
+                myReceipts={myReceipts}
+                setReceipts={setReceipts}
+                isInEditMode={isInEditMode}
+                setIsInEditMode={setIsInEditMode}
+            />
+            : <ReceiptsTable
+                myName={myName}
+                otherName={otherName}
+                isFirst={isFirst}
+                myReceipts={myReceipts}
+                setReceipts={setReceipts}
+                isInEditMode={isInEditMode}
+                setIsInEditMode={setIsInEditMode}
+            />
+            ;
     }
 
     return (
@@ -192,9 +152,8 @@ export default function ReceiptManager(props: {
                     myReceipts={firstReceipts}
                     otherReceipts={secondReceipts}
                     setPersonName={saveFirstPersonName}
-                    setReceipts={setReceipts}
                     uploadFile={uploadFile}
-
+                    setReceipts={setReceipts}
                 />
                 <PersonCard
                     myName={secondPersonName}
@@ -203,58 +162,15 @@ export default function ReceiptManager(props: {
                     myReceipts={secondReceipts}
                     otherReceipts={firstReceipts}
                     setPersonName={saveSecondPersonName}
-                    setReceipts={setReceipts}
                     uploadFile={uploadFile}
-
+                    setReceipts={setReceipts}
                 />
             </div>
             {firstReceipts.length !== 0 &&
-                <ReceiptsTable
-                    myName={firstPersonName}
-                    otherName={secondPersonName}
-                    isFirst={true}
-                    myReceipts={firstReceipts}
-                    isInEditMode={isFristInEditMode}
-                    toggleAllMyItems={toggleAllMyItems}
-                    toggleAllSharedItems={toggleAllSharedItems}
-                    toggleAllRejectedItems={toggleAllRejectedItems}
-                    selectCategoryForAllItems={selectCategoryForAllItems}
-                    toggleMyItem={toggleMyItem}
-                    toggleSharedItem={toggleShareItem}
-                    toggleRejectedItem={toggleRejectItem}
-                    deleteReceipt={deleteReceipt}
-                    deleteItem={deleteItem}
-                    selectCategory={selectCategory}
-                    setItemAmount={setItemAmount}
-                    setItemPrice={setItemPrice}
-                    setItemName={setItemName}
-                    setStoreName={setStoreName}
-                    setIsInEditMode={setIsFirstInEditMode}
-                />
+                getReceiptsTable(isFristInEditMode, firstPersonName, secondPersonName, true, firstReceipts)
             }
             {secondReceipts.length !== 0 &&
-                <ReceiptsTable
-                    myName={secondPersonName}
-                    otherName={firstPersonName}
-                    isFirst={false}
-                    myReceipts={secondReceipts}
-                    isInEditMode={isSecondInEditMode}
-                    toggleAllMyItems={toggleAllMyItems}
-                    toggleAllSharedItems={toggleAllSharedItems}
-                    toggleAllRejectedItems={toggleAllRejectedItems}
-                    selectCategoryForAllItems={selectCategoryForAllItems}
-                    toggleMyItem={toggleMyItem}
-                    toggleSharedItem={toggleShareItem}
-                    toggleRejectedItem={toggleRejectItem}
-                    deleteReceipt={deleteReceipt}
-                    deleteItem={deleteItem}
-                    selectCategory={selectCategory}
-                    setItemAmount={setItemAmount}
-                    setItemPrice={setItemPrice}
-                    setItemName={setItemName}
-                    setStoreName={setStoreName}
-                    setIsInEditMode={setIsSecondInEditMode}
-                />
+                getReceiptsTable(isSecondInEditMode, secondPersonName, firstPersonName, false, secondReceipts)
             }
         </div>
     );

@@ -3,32 +3,17 @@ import styles from '@/styles/components/receipt-manager/personCell/ReceiptsTable
 import { IReceipt } from '@/interfaces/IReceipt';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import { Category } from "@/enums/Category";
-import { setStoreName } from '@/handlers/ReceiptModifier';
 import { Pencil } from 'lucide-react';
-
-
+import * as ReceiptModifier from '@/handlers/ReceiptModifier';
 
 export default function ReceiptsTable(props: {
     myName: string,
     otherName: string,
     isFirst: boolean,
-    isInEditMode: boolean,
     myReceipts: IReceipt[],
-    toggleAllMyItems: (receiptNum: number, isFirst: boolean) => void;
-    toggleAllSharedItems: (receiptNum: number, isFirst: boolean) => void;
-    toggleAllRejectedItems: (receiptNum: number, isFirst: boolean) => void;
-    deleteReceipt: (receiptNum: number, isFirst: boolean) => void;
-    selectCategoryForAllItems: (receiptNum: number, isFirst: boolean, selectCategory: Category) => void;
-    toggleMyItem: (receiptNum: number, itemNum: number, isFirst: boolean) => void;
-    toggleSharedItem: (receiptNum: number, itemNum: number, isFirst: boolean) => void;
-    toggleRejectedItem: (receiptNum: number, itemNum: number, isFirst: boolean) => void;
-    deleteItem: (receiptNum: number, itemNum: number, isFirst: boolean) => void;
-    selectCategory: (receiptNum: number, itemNum: number, isFirst: boolean, selectCategory: Category) => void;
-    setItemAmount: (receiptNum: number, itemNum: number, isFirst: boolean, amount: number) => void;
-    setItemPrice: (receiptNum: number, itemNum: number, isFirst: boolean, price: number) => void;
-    setItemName: (receiptNum: number, itemNum: number, isFirst: boolean, name: string) => void;
-    setStoreName: (receiptNum: number, isFirst: boolean, name: string) => void;
-    setIsInEditMode: (isInEditMode: boolean) => void;
+    isInEditMode: boolean,
+    setIsInEditMode: (isInEditMode: boolean, isFirst: boolean) => void
+    setReceipts: (receipts: IReceipt[], isFirst: boolean) => void,
 }) {
     const {
         myName,
@@ -36,44 +21,48 @@ export default function ReceiptsTable(props: {
         isFirst,
         myReceipts,
         isInEditMode,
-        toggleAllMyItems,
-        toggleAllSharedItems,
-        toggleAllRejectedItems,
-        deleteReceipt,
-        selectCategoryForAllItems,
-        toggleMyItem,
-        toggleSharedItem,
-        toggleRejectedItem,
-        deleteItem,
-        selectCategory,
-        setItemAmount,
-        setItemPrice,
-        setItemName,
-        setStoreName,
+        setReceipts,
         setIsInEditMode
     } = props;
 
-    function generateTableHeader(isFirst: boolean, myName: string, otherName: string): JSX.Element {
-        return (
-            <tr>
-                <th>Item / Store Name</th>
-                <th>Price €</th>
-                <th>Amount</th>
-                {!isInEditMode &&
-                    <th >{isFirst ? myName : otherName}</th>
-                }
-                {!isInEditMode &&
-                    <th>Shared</th>
-                }
-                {!isInEditMode &&
-                    <th >{isFirst ? otherName : myName}</th>
-                }
-                {isInEditMode
-                    ? <th >Actions</th>
-                    : <th >Category</th>
-                }
-            </tr>
-        );
+    function selectCategory(receiptNum: number, itemNum: number, isFirstList: boolean, selectedCategory: Category) {
+        const receipts: IReceipt[] = myReceipts;
+        setReceipts(ReceiptModifier.selectCategory(receipts, receiptNum, itemNum, selectedCategory), isFirstList);
+    }
+
+    function toggleRejectItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = myReceipts;
+        setReceipts(ReceiptModifier.toggleRejectItem(receipts, receiptNum, itemNum), isFirstList);
+    }
+
+    function toggleShareItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = myReceipts;
+        setReceipts(ReceiptModifier.toggleShareItem(receipts, receiptNum, itemNum), isFirstList);
+    }
+
+    function toggleMyItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = myReceipts;
+        setReceipts(ReceiptModifier.toggleMyItem(receipts, receiptNum, itemNum), isFirstList);
+    }
+
+    function selectCategoryForAllItems(receiptNum: number, isFirstList: boolean, selectedCategory: Category) {
+        const receipts: IReceipt[] = myReceipts;
+        setReceipts(ReceiptModifier.selectCategoryForAllItems(receipts, receiptNum, selectedCategory), isFirstList);
+    }
+
+    function toggleAllRejectedItems(receiptNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = myReceipts;
+        setReceipts(ReceiptModifier.toggleAllRejectedItems(receipts, receiptNum), isFirstList);
+    }
+
+    function toggleAllSharedItems(receiptNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = myReceipts;
+        setReceipts(ReceiptModifier.toggleAllSharedItems(receipts, receiptNum), isFirstList);
+    }
+
+    function toggleAllMyItems(receiptNum: number, isFirstList: boolean) {
+        const receipts: IReceipt[] = myReceipts;
+        setReceipts(ReceiptModifier.toggleAllMyItems(receipts, receiptNum), isFirstList);
     }
 
     function generateTableRows(isFirst: boolean, myReceipts: IReceipt[]): JSX.Element[] {
@@ -89,116 +78,80 @@ export default function ReceiptsTable(props: {
             rows.push(
                 <tr key={keyChar + key}>
                     <td className={[styles.personTableCellHeader].join(' ')}>
-                        {isInEditMode
-                            ? <input className={[styles.bigTextInput].join(' ')} value={receipt.store} placeholder={'Store name'}
-                                onChange={(e) => {
-                                    setStoreName(receiptNum, isFirst, e.currentTarget.value);
-                                }}
-                            />
-                            : <div>{receipt.store}</div>
-                        }
+                        {receipt.store}
                     </td>
                     <td className={[styles.personTableCellHeader].join(' ')}>
-                        {receipt.totalPrice + ' €'}</td>
+                        {receipt.totalPrice + ' €'}
+                    </td>
                     <td className={[styles.personTableCellHeader].join(' ')}>{''}</td>
-                    {isFirst && !isInEditMode &&
+                    {isFirst &&
                         <td className={[styles.personTableCellHeader].join(' ')}>
-                            <input disabled={isInEditMode} checked={receipt.isAllMine} type='radio' onChange={() => { toggleAllMyItems(receiptNum, isFirst) }} />
+                            <input checked={receipt.isAllMine} type='radio' onChange={() => { toggleAllMyItems(receiptNum, isFirst) }} />
                         </td>
                     }
-                    {!isFirst && !isInEditMode &&
+                    {!isFirst &&
                         <td className={[styles.personTableCellHeader].join(' ')}>
-                            <input disabled={isInEditMode} checked={receipt.isAllRejected} type='radio' onChange={() => { toggleAllRejectedItems(receiptNum, isFirst) }} />
+                            <input checked={receipt.isAllRejected} type='radio' onChange={() => { toggleAllRejectedItems(receiptNum, isFirst) }} />
                         </td>
                     }
-                    {!isInEditMode &&
+                    <td className={[styles.personTableCellHeader].join(' ')}>
+                        <input checked={receipt.isAllShared} type='radio' onChange={() => { toggleAllSharedItems(receiptNum, isFirst) }} />
+                    </td>
+                    {!isFirst &&
                         <td className={[styles.personTableCellHeader].join(' ')}>
-                            <input disabled={isInEditMode} checked={receipt.isAllShared} type='radio' onChange={() => { toggleAllSharedItems(receiptNum, isFirst) }} />
+                            <input checked={receipt.isAllMine} type='radio' onChange={() => { toggleAllMyItems(receiptNum, isFirst) }} />
                         </td>
                     }
-
-                    {!isFirst && !isInEditMode &&
+                    {isFirst &&
                         <td className={[styles.personTableCellHeader].join(' ')}>
-                            <input disabled={isInEditMode} checked={receipt.isAllMine} type='radio' onChange={() => { toggleAllMyItems(receiptNum, isFirst) }} />
+                            <input checked={receipt.isAllRejected} type='radio' onChange={() => { toggleAllRejectedItems(receiptNum, isFirst) }} />
                         </td>
                     }
-                    {isFirst && !isInEditMode &&
-                        <td className={[styles.personTableCellHeader].join(' ')}>
-                            <input disabled={isInEditMode} checked={receipt.isAllRejected} type='radio' onChange={() => { toggleAllRejectedItems(receiptNum, isFirst) }} />
-                        </td>
-                    }
-                    {!isInEditMode
-                        ? <td className={[styles.personTableCellHeader].join(' ')}>
-                        </td>
-                        : <td className={[styles.personTableCellHeader].join(' ')}>
-                            <button onClick={() => {
-                                deleteReceipt(receiptNum, isFirst);
-                            }}>🗑️ Delete</button>
-                        </td>
-                    }
+                    <td className={[styles.personTableCellHeader].join(' ')}>
+                    </td>
                 </tr>
             );
 
             rows.push(...receiptItems.map((item, itemNum) => {
                 key++;
-                return (<tr key={keyChar + key}>
-                    <td className={[].join(' ')}>
-                        {isInEditMode
-                            ? <input className={[styles.textInput].join(' ')} value={item.name} placeholder={'Item name'}
-                                onChange={(e) => {
-                                    setItemName(receiptNum, itemNum, isFirst, e.currentTarget.value);
-                                }}
-                            />
-                            : <div>{item.name}</div>
+                return (
+                    <tr key={keyChar + key}>
+                        <td className={[].join(' ')}>
+                            {item.name}
+                        </td>
+                        <td className={[].join(' ')}>
+                            {item.price + ' €'}
+                        </td>
+                        <td className={[].join(' ')}>{item.amount}
+                        </td>
+                        {isFirst &&
+                            <td className={[].join(' ')}>
+                                <input checked={item.isMine} type='radio' onChange={() => { toggleMyItem(receiptNum, itemNum, isFirst) }} />
+                            </td>
                         }
-                    </td>
-                    <td className={[].join(' ')}>
-                        {isInEditMode
-                            ? <input className={[styles.textInput].join(' ')} value={item.price} placeholder={'Item price'}
-                                onChange={(e) => {
-                                    setItemPrice(receiptNum, itemNum, isFirst, parseFloat(e.currentTarget.value));
-                                }}
-                            />
-                            : <div>{item.price + ' €'}</div>
+                        {!isFirst &&
+                            <td className={[].join(' ')}>
+                                <input checked={item.isRejected} type='radio' onChange={() => { toggleRejectItem(receiptNum, itemNum, isFirst) }} />
+                            </td>
                         }
-                    </td>
-                    <td className={[].join(' ')}>{isInEditMode
-                        ? <input className={[styles.textInput].join(' ')} value={item.amount} placeholder={'Item amount'}
-                            onChange={(e) => {
-                                setItemAmount(receiptNum, itemNum, isFirst, parseFloat(e.currentTarget.value));
-                            }}
-                        />
-                        : <div>{item.amount}</div>
-                    }
-                    </td>
-                    {isFirst && !isInEditMode &&
-                        <td className={[].join(' ')}>
-                            <input disabled={isInEditMode} checked={item.isMine} type='radio' onChange={() => { toggleMyItem(receiptNum, itemNum, isFirst) }} />
-                        </td>
-                    }
-                    {!isFirst && !isInEditMode &&
-                        <td className={[].join(' ')}>
-                            <input disabled={isInEditMode} checked={item.isRejected} type='radio' onChange={() => { toggleRejectedItem(receiptNum, itemNum, isFirst) }} />
-                        </td>
-                    }
-                    {!isInEditMode &&
-                        <td className={[].join(' ')}>
-                            <input disabled={isInEditMode} checked={item.isShared} type='radio' onChange={() => { toggleSharedItem(receiptNum, itemNum, isFirst) }} />
-                        </td>
-                    }
 
-                    {!isFirst && !isInEditMode &&
                         <td className={[].join(' ')}>
-                            <input disabled={isInEditMode} checked={item.isMine} type='radio' onChange={() => { toggleMyItem(receiptNum, itemNum, isFirst) }} />
+                            <input checked={item.isShared} type='radio' onChange={() => { toggleShareItem(receiptNum, itemNum, isFirst) }} />
                         </td>
-                    }
-                    {isFirst && !isInEditMode &&
+
+
+                        {!isFirst &&
+                            <td className={[].join(' ')}>
+                                <input checked={item.isMine} type='radio' onChange={() => { toggleMyItem(receiptNum, itemNum, isFirst) }} />
+                            </td>
+                        }
+                        {isFirst &&
+                            <td className={[].join(' ')}>
+                                <input checked={item.isRejected} type='radio' onChange={() => { toggleRejectItem(receiptNum, itemNum, isFirst) }} />
+                            </td>
+                        }
+
                         <td className={[].join(' ')}>
-                            <input disabled={isInEditMode} checked={item.isRejected} type='radio' onChange={() => { toggleRejectedItem(receiptNum, itemNum, isFirst) }} />
-                        </td>
-                    }
-                    {!isInEditMode
-                        ? <td className={[].join(' ')}>
                             <select defaultValue={Category[item.category]} onChange={(e) => {
                                 // Parse the category from the select event
                                 const categoryName: string = e.currentTarget.value;
@@ -214,13 +167,8 @@ export default function ReceiptsTable(props: {
                                     .map((key, n) => { return (<option key={n} value={key}>{key}</option>) })}
                             </select>
                         </td>
-                        : <td className={[].join(' ')}>
-                            <button onClick={() => {
-                                deleteItem(receiptNum, itemNum, isFirst);
-                            }}>🗑️ Delete</button>
-                        </td>
-                    }
-                </tr>)
+                    </tr>
+                )
             }));
             key++;
         }
@@ -232,11 +180,21 @@ export default function ReceiptsTable(props: {
             <div className={styles.headerSplit}>
                 <h2>{myName} Receipts</h2>
                 <button className={[styles.fancyButton, isInEditMode ? styles.isActive : ''].join(' ')} onClick={() => {
-                    setIsInEditMode(!isInEditMode);
+                    setIsInEditMode(!isInEditMode, isFirst);
                 }}><Pencil width={16} /> Edit</button>
             </div>
             <table className={[styles.table].join(' ')}>
-                <thead>{generateTableHeader(isFirst, myName, otherName)}</thead>
+                <thead>
+                    <tr>
+                        <th>Item / Store Name</th>
+                        <th>Price €</th>
+                        <th>Amount</th>
+                        <th >{isFirst ? myName : otherName}</th>
+                        <th>Shared</th>
+                        <th >{isFirst ? otherName : myName}</th>
+                        <th >Category</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {...generateTableRows(isFirst, myReceipts)}
                 </tbody>

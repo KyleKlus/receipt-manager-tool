@@ -32,6 +32,12 @@
     gap: 6px;
 }
 
+.isActive {
+    background: var(--bg-color-05);
+    box-shadow: var(--shadowElevation_2);
+    outline: 1.5px solid var(--bg-color-30);
+}
+
 .bigTextInput {
     font-size: 1.2rem;
 }
@@ -83,6 +89,10 @@
 
 .table :is(td, th):nth-child(4) {
     background-color: hsla(0, 50%, 50%, 0.253);
+}
+
+.table :is(td, th):nth-child(4) > button {
+    margin: 0 auto;
 }
 
 .table :is(td, th):nth-child(4) input:checked::after {

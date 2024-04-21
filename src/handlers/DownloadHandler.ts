@@ -12,6 +12,7 @@ interface IExportExpensesRow {
     IsMyItem: boolean;
     IsSharedItem: boolean;
     IsRejectedItem: boolean;
+    Store: string;
 }
 
 export function downloadCSV(name: string, myReceipts: IReceipt[], otherReceipts: IReceipt[]) {
@@ -72,6 +73,7 @@ function _convertReceiptsToList(myReceipts: IReceipt[]): IExportExpensesRow[] {
             IsMyItem: receipt.isAllMine,
             IsSharedItem: receipt.isAllShared,
             IsRejectedItem: receipt.isAllRejected,
+            Store: ''
         })
 
         for (let jndex = 0; jndex < receipt.items.length; jndex++) {
@@ -85,6 +87,7 @@ function _convertReceiptsToList(myReceipts: IReceipt[]): IExportExpensesRow[] {
                 IsMyItem: item.isMine,
                 IsSharedItem: item.isShared,
                 IsRejectedItem: item.isRejected,
+                Store: receipt.store
             })
         }
     }
@@ -139,6 +142,7 @@ function _prepExpenses(myReceipts: IReceipt[], otherReceipts: IReceipt[]): IExpo
             IsMyItem: e.isMine,
             IsSharedItem: e.isShared,
             IsRejectedItem: e.isRejected,
+            Store: ''
         }
         return row;
     }).slice(0);
