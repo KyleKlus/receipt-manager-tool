@@ -4,10 +4,8 @@ import { useEffect, useState } from 'react';
 import { IReceipt } from '@/interfaces/IReceipt';
 import PersonCard from '@/components/receipt-manager/personCell/PersonCard';
 import ReceiptsTable from '@/components/receipt-manager/personCell/ReceiptsTable';
-import { Category } from "@/enums/Category";
 import useStorage from '@/hooks/useStorage';
 import * as UploadHandler from '@/handlers/UploadHandler';
-import * as ReceiptModifier from '@/handlers/ReceiptModifier';
 import { IExcelImportData } from '@/handlers/UploadHandler';
 import EditReceiptsTable from './personCell/EditReceiptsTable';
 
@@ -130,11 +128,9 @@ export default function ReceiptManager(props: {
                 setReceipts={setReceipts}
                 isInEditMode={isInEditMode}
                 setIsInEditMode={setIsInEditMode}
-                switchToNextTable={
-                    () => {
-                        setShowFirstTable(!isFirst);
-                    }
-                }
+                switchToNextTable={() => {
+                    setShowFirstTable(!isFirst);
+                }}
             />
             : <ReceiptsTable
                 myName={myName}
@@ -144,11 +140,9 @@ export default function ReceiptManager(props: {
                 setReceipts={setReceipts}
                 isInEditMode={isInEditMode}
                 setIsInEditMode={setIsInEditMode}
-                switchToNextTable={
-                    () => {
-                        setShowFirstTable(!isFirst);
-                    }
-                }
+                switchToNextTable={() => {
+                    setShowFirstTable(!isFirst);
+                }}
             />
             ;
     }

@@ -2,7 +2,9 @@ import { Category } from "@/enums/Category";
 import { IReceipt } from "@/interfaces/IReceipt";
 import { IReceiptItem } from "@/interfaces/IReceiptItem";
 import { IResult } from "@/interfaces/IResult";
+import BigNumber from 'bignumber.js';
 import * as XLSX from 'xlsx';
+import { deepCopyReceipts } from "./ReceiptModifier";
 
 interface IExportExpensesRow {
     Name: string;
@@ -27,8 +29,8 @@ export function downloadCSV(name: string, myReceipts: IReceipt[], otherReceipts:
 }
 
 export function downloadEXCEL(name: string, myName: string, otherName: string, myReceipts: IReceipt[], otherReceipts: IReceipt[], resultData: IResult) {
-    const myReceiptsCopy = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[];
-    const otherReceiptsCopy = JSON.parse(JSON.stringify(otherReceipts)) as IReceipt[];
+    const myReceiptsCopy = deepCopyReceipts(myReceipts);
+    const otherReceiptsCopy = deepCopyReceipts(otherReceipts);
     const myExpenses: IExportExpensesRow[] = _prepExpenses(myReceiptsCopy, otherReceiptsCopy);
     const myReceiptsExport: IExportExpensesRow[] = _convertReceiptsToList(myReceiptsCopy);
     const otherExpenses: IExportExpensesRow[] = _prepExpenses(otherReceiptsCopy, myReceiptsCopy);
@@ -57,7 +59,7 @@ function _convertReceiptsToList(myReceipts: IReceipt[]): IExportExpensesRow[] {
     if (myReceipts === undefined) { return []; }
     if (myReceipts.length === 0) { return []; }
 
-    const receipts = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[]
+    const receipts = deepCopyReceipts(myReceipts);
 
     const data: IExportExpensesRow[] = []
 
@@ -106,16 +108,16 @@ function _prepExpenses(myReceipts: IReceipt[], otherReceipts: IReceipt[]): IExpo
     let filteredList: IReceiptItem[] = []
     let otherFilteredList: IReceiptItem[] = [];
 
-    const firstReceipts = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[];
+    const firstReceipts = deepCopyReceipts(myReceipts);
 
-    const secondReceipts = JSON.parse(JSON.stringify(otherReceipts)) as IReceipt[];
+    const secondReceipts = deepCopyReceipts(otherReceipts);
 
     firstReceipts.forEach((itemArray) => {
         for (let index = 0; index < itemArray.items.length; index++) {
             const item = itemArray.items[index];
             if (item.isRejected) { continue; }
             if (item.isShared) {
-                item.price = item.price / 2;
+                item.price = parseFloat(new BigNumber(item.price).dividedBy(new BigNumber(2)).toFixed(2));
             }
             filteredList.push(item);
         }
@@ -126,7 +128,7 @@ function _prepExpenses(myReceipts: IReceipt[], otherReceipts: IReceipt[]): IExpo
             const item = itemArray.items[index];
             if (item.isMine) { continue; }
             if (item.isShared) {
-                item.price = item.price / 2;
+                item.price = parseFloat(new BigNumber(item.price).dividedBy(new BigNumber(2)).toFixed(2));
             }
             otherFilteredList.push(item);
         }
@@ -180,8 +182,8 @@ function _prepResult(resultData: IResult): any[] {
         },
         {
             Stuff: 'Money paid',
-            [firstValue]: -1 * resultData.payerExpenses,
-            [secondValue]: -1 * resultData.receiverExpenses
+            [firstValue]: resultData.payerExpenses,
+            [secondValue]: resultData.receiverExpenses
         },
         {
             Stuff: 'Result',
@@ -237,10 +239,10 @@ function _prepCSVDataTotal(resultData: IResult): string {
         + (resultData.sharedFromReceiver).toString().replace('.', ',') + ';');
 
     csvDataArray.push('Money paid;'
-        + (-1 * resultData.payerExpenses).toString().replace('.', ',') + ';'
-        + (-1 * resultData.receiverExpenses).toString().replace('.', ',') + ';');
+        + (resultData.payerExpenses).toString().replace('.', ',') + ';'
+        + (resultData.receiverExpenses).toString().replace('.', ',') + ';');
 
-    csvDataArray.push('Result;' + (-1 * resultData.result).toString().replace('.', ',')
+    csvDataArray.push('Result;' + (resultData.result).toString().replace('.', ',')
         + ';' + (resultData.result).toString().replace('.', ',') + ';');
 
 

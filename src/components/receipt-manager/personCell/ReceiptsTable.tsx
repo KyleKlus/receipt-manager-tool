@@ -83,7 +83,7 @@ export default function ReceiptsTable(props: {
                         {receipt.store}
                     </td>
                     <td className={[styles.personTableCellHeader].join(' ')}>
-                        {receipt.totalPrice + ' €'}
+                        {receipt.totalPrice.toFixed(2) + ' €'}
                     </td>
                     <td className={[styles.personTableCellHeader].join(' ')}>{''}</td>
                     {isFirst &&
@@ -122,7 +122,7 @@ export default function ReceiptsTable(props: {
                             {item.name}
                         </td>
                         <td className={[].join(' ')}>
-                            {item.price + ' €'}
+                            {item.price.toFixed(2) + ' €'}
                         </td>
                         <td className={[].join(' ')}>{item.amount}
                         </td>

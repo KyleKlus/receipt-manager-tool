@@ -3,8 +3,9 @@ import styles from '@/styles/components/receipt-manager/personCell/ReceiptsTable
 import { IReceipt } from '@/interfaces/IReceipt';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import { Category, DEFAULT_CATEGORY } from "@/enums/Category";
-import { Plus} from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import BigNumber from 'bignumber.js';
 
 export default function EditableTableRow(props: {
     isFirst: boolean,
@@ -36,8 +37,7 @@ export default function EditableTableRow(props: {
             category: DEFAULT_CATEGORY
         }
 
-        tmpReceipts[receiptNum].totalPrice += newItem.price;
-
+        tmpReceipts[receiptNum].totalPrice = new BigNumber(tmpReceipts[receiptNum].totalPrice).plus(newItem.price).toNumber();
         tmpReceipts[receiptNum].categoryForAllItems = Category.None;
         tmpReceipts[receiptNum].items.push(newItem);
         tmpReceipts[receiptNum].isAllMine = false;
@@ -60,16 +60,16 @@ export default function EditableTableRow(props: {
                 />
             </td>
             <td className={[].join(' ')}>
-                <input className={[styles.textInput].join(' ')} type={'text'} value={newItemPrice} placeholder={'Item price'}
+                <input className={[styles.textInput].join(' ')} type={'number'} value={newItemPrice} placeholder={'Item price'}
                     onChange={(e) => {
-                        setNewItemPrice(e.currentTarget.value === '' ? 0 : parseFloat(e.currentTarget.value));
+                        setNewItemPrice(e.currentTarget.valueAsNumber);
                     }}
                 />
             </td>
             <td className={[].join(' ')}>
-                <input className={[styles.textInput].join(' ')} type={'text'} value={newItemAmount} placeholder={'Item amount'}
+                <input className={[styles.textInput].join(' ')} type={'number'} value={newItemAmount} placeholder={'Item amount'}
                     onChange={(e) => {
-                        setNewItemAmount(e.currentTarget.value === '' ? 0 : parseFloat(e.currentTarget.value));
+                        setNewItemAmount(e.currentTarget.valueAsNumber);
                     }}
                 />
             </td>

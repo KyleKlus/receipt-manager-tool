@@ -1,7 +1,11 @@
 import { Category } from "@/enums/Category";
 import { IReceipt } from "@/interfaces/IReceipt";
 import { IReceiptItem } from "@/interfaces/IReceiptItem";
+import BigNumber from 'bignumber.js';
 
+export function deepCopyReceipts(receipts: IReceipt[]): IReceipt[] {
+    return JSON.parse(JSON.stringify(receipts)) as IReceipt[]
+}
 
 export function setStoreName(receipts: IReceipt[], receiptNum: number, store: string): IReceipt[] {
     const updatedList: IReceipt[] = receipts;
@@ -23,7 +27,7 @@ export function setItemAmount(receipts: IReceipt[], receiptNum: number, itemNum:
 
 export function setItemPrice(receipts: IReceipt[], receiptNum: number, itemNum: number, newPrice: number): IReceipt[] {
     const updatedList: IReceipt[] = receipts;
-    updatedList[receiptNum].totalPrice = updatedList[receiptNum].totalPrice - updatedList[receiptNum].items[itemNum].price + newPrice;
+    updatedList[receiptNum].totalPrice = new BigNumber(updatedList[receiptNum].totalPrice).minus(new BigNumber(updatedList[receiptNum].items[itemNum].price).plus(newPrice)).toNumber();
     updatedList[receiptNum].items[itemNum].price = newPrice;
     return updatedList;
 }
@@ -87,13 +91,11 @@ export function deleteItem(receipts: IReceipt[], receiptNum: number, itemNum: nu
     const updatedList: IReceipt[] = receipts;
 
     const deletedItem = updatedList[receiptNum].items.splice(itemNum, 1);
-    updatedList[receiptNum].totalPrice -= deletedItem[0].price;
+    updatedList[receiptNum].totalPrice = new BigNumber(updatedList[receiptNum].totalPrice).minus(deletedItem[0].price).toNumber();
 
     if (updatedList[receiptNum].totalPrice < 0 && updatedList[receiptNum].items.length === 0) {
         updatedList[receiptNum].totalPrice = 0;
     }
-
-    updatedList[receiptNum].totalPrice = Math.floor(updatedList[receiptNum].totalPrice * 100) / 100;
 
     return updatedList;
 }

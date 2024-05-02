@@ -1,58 +1,64 @@
 import { IReceipt } from "@/interfaces/IReceipt";
+import BigNumber from 'bignumber.js';
+import { deepCopyReceipts } from "./ReceiptModifier";
 
-export function calcReceiptsExpenses(receipts: IReceipt[]): number {
-    let expenses: number = 0;
-
-    const receiptsCopy = JSON.parse(JSON.stringify(receipts)) as IReceipt[];
+export function calcReceiptsExpenses(receipts: IReceipt[]): BigNumber {
+    let expenses: BigNumber = new BigNumber(0);
+    let totalPrice: BigNumber = new BigNumber(0);
+    const receiptsCopy = deepCopyReceipts(receipts);
 
     receiptsCopy.forEach((receipt) => {
-        expenses += receipt.totalPrice;
+        receipt.items.forEach((item) => {
+            expenses = expenses.plus(item.price);
+        });
+        totalPrice = new BigNumber(0);
     })
 
-    return Math.floor((expenses) * 100) / 100;
+    return expenses;
 }
 
-export function calcPersonalExpenses(receipts: IReceipt[]): number {
-    let expenses: number = 0;
-    const receiptsCopy = JSON.parse(JSON.stringify(receipts)) as IReceipt[];
+export function calcPersonalExpenses(receipts: IReceipt[]): BigNumber {
+    let expenses: BigNumber = new BigNumber(0);
+    const receiptsCopy = deepCopyReceipts(receipts);
 
     receiptsCopy.forEach((receipt) => {
         receipt.items.forEach((item) => {
             if (item.isMine) {
-                expenses += item.price;
+                expenses = expenses.plus(item.price);
             }
         })
     })
 
-    return Math.floor((expenses) * 100) / 100;
+    return expenses;
 }
 
-export function calcSharedExpenses(receipts: IReceipt[]): number {
-    let expenses: number = 0;
-    const receiptsCopy = JSON.parse(JSON.stringify(receipts)) as IReceipt[];
+export function calcSharedExpenses(receipts: IReceipt[]): BigNumber {
+    let expenses: BigNumber = new BigNumber(0);
+    const receiptsCopy = deepCopyReceipts(receipts);
 
     receiptsCopy.forEach((receipt) => {
         receipt.items.forEach((item) => {
             if (item.isShared) {
-                expenses += item.price / 2;
+                const sharedPrice: BigNumber = new BigNumber(item.price).dividedBy(new BigNumber(2));
+                expenses = expenses.plus(sharedPrice);
             }
         })
     })
 
-    return Math.floor((expenses) * 100) / 100;
+    return expenses;
 }
 
-export function calcRejectedExpenses(receipts: IReceipt[]): number {
-    let expenses: number = 0;
-    const receiptsCopy = JSON.parse(JSON.stringify(receipts)) as IReceipt[];
+export function calcRejectedExpenses(receipts: IReceipt[]): BigNumber {
+    let expenses: BigNumber = new BigNumber(0);
+    const receiptsCopy = deepCopyReceipts(receipts);
 
     receiptsCopy.forEach((receipt) => {
         receipt.items.forEach((item) => {
             if (item.isRejected) {
-                expenses += item.price;
+                expenses = expenses.plus(item.price);
             }
         })
     })
 
-    return Math.floor((expenses) * 100) / 100;
+    return expenses;
 }

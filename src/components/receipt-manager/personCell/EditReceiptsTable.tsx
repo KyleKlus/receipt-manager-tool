@@ -8,6 +8,7 @@ import * as ReceiptModifier from '@/handlers/ReceiptModifier';
 import { useState } from 'react';
 import moment from 'moment';
 import EditableTableRow from './EditableTableRow';
+import BigNumber from 'bignumber.js';
 
 export default function ReceiptsTable(props: {
     myName: string,
@@ -106,16 +107,16 @@ export default function ReceiptsTable(props: {
                             />
                         </td>
                         <td className={[].join(' ')}>
-                            <input className={[styles.textInput].join(' ')} type='text' value={item.price} placeholder={'Item price'}
+                            <input className={[styles.textInput].join(' ')} type='number' value={item.price} placeholder={'Item price'}
                                 onChange={(e) => {
-                                    setItemPrice(receiptNum, itemNum, isFirst, e.currentTarget.value === '' ? 0 : parseFloat(e.currentTarget.value));
+                                    setItemPrice(receiptNum, itemNum, isFirst, e.currentTarget.valueAsNumber);
                                 }}
                             />
                         </td>
                         <td className={[].join(' ')}>
-                            <input className={[styles.textInput].join(' ')} type={'text'} value={item.amount} placeholder={'Item amount'}
+                            <input className={[styles.textInput].join(' ')} type={'number'} value={item.amount} placeholder={'Item amount'}
                                 onChange={(e) => {
-                                    setItemAmount(receiptNum, itemNum, isFirst, e.currentTarget.value === '' ? 0 : parseFloat(e.currentTarget.value));
+                                    setItemAmount(receiptNum, itemNum, isFirst, e.currentTarget.valueAsNumber);
                                 }}
                             />
                         </td>

@@ -1,6 +1,7 @@
 import { Category, DEFAULT_CATEGORY } from "@/enums/Category";
 import { IReceipt } from "@/interfaces/IReceipt";
 import { IReceiptItem } from "@/interfaces/IReceiptItem";
+import BigNumber from 'bignumber.js';
 import moment from "moment";
 import * as XLSX from 'xlsx';
 
@@ -83,22 +84,21 @@ export function parseCSVToReceipts(file: File, ownerName: string): Promise<IRece
                     return _extractRelevantData(item, itemDataIndices)
                 });
 
-                let totalPrice = 0;
+                let totalPrice = new BigNumber(0);
 
                 let parsedReceiptItems: IReceiptItem[] = receiptItems.map(list => {
                     let itemName = _firstCharToUppercase(list[0]);
                     itemName = itemName !== '' ? itemName : unrecognizedItemName;
-                    const itemAmount: number = list[2] === '' ? 1 : Math.floor(parseFloat(list[2]) * 100) / 100;
+                    const itemAmount: number = list[2] === '' ? 1 : parseFloat(list[2]);
                     // NOTE: * -100 because all parsed prices have a - sign
-                    const price: number = Math.floor(parseFloat(list[1]) * -100) / 100;
-                    totalPrice += price;
-
+                    const price: number = -1 * parseFloat(list[1]);
+                    totalPrice = totalPrice.plus(price);
                     return {
                         name: itemName,
                         isMine: false,
                         isShared: true,
                         isRejected: false,
-                        price: itemName === unrecognizedItemName ? 0 : Math.round(price * 100) / 100,
+                        price: itemName === unrecognizedItemName ? 0 : price,
                         amount: itemName === unrecognizedItemName ? 0 : itemAmount,
                         category: itemName === unrecognizedItemName ? Category.None : price < 0 ? Category.Discount : DEFAULT_CATEGORY
                     }
@@ -116,7 +116,7 @@ export function parseCSVToReceipts(file: File, ownerName: string): Promise<IRece
                     isAllShared: false,
                     isAllRejected: false,
                     isAllMine: false,
-                    totalPrice: storeName === unrecognizedStoreName ? 0 : Math.round(totalPrice * 100) / 100,
+                    totalPrice: storeName === unrecognizedStoreName ? 0 : totalPrice.toNumber(),
                     items: storeName === unrecognizedStoreName ? [] : parsedReceiptItems,
                 }
 

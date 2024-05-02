@@ -10,6 +10,7 @@ import moment from 'moment';
 import { IResult } from '@/interfaces/IResult';
 import { Download, Plus, Upload, X, Pencil } from 'lucide-react';
 import { DEFAULT_CATEGORY } from '@/enums/Category';
+import BigNumber from 'bignumber.js';
 
 export default function PersonCard(props: {
     myName: string,
@@ -37,23 +38,28 @@ export default function PersonCard(props: {
     const [newItemPrice, setNewItemPrice] = useState<number>(NaN);
     const [newItemAmount, setNewItemAmount] = useState<number>(1);
 
-    const myReceiptsExpenses: number = Calculator.calcReceiptsExpenses(myReceipts);
-    const otherReceiptsExpenses: number = Calculator.calcReceiptsExpenses(otherReceipts);
+    // --- shared ---
+    const sharedExpensesFromMe = Calculator.calcSharedExpenses(myReceipts);
+    const sharedExpensesFromOther: BigNumber = Calculator.calcSharedExpenses(otherReceipts);
+    const sharedExpenses = parseFloat(sharedExpensesFromMe.plus(sharedExpensesFromOther).toFixed(2));
 
-    const myItemsFromMe: number = Calculator.calcPersonalExpenses(myReceipts);
-    const otherItemsFromOther: number = Calculator.calcPersonalExpenses(otherReceipts);
-    const sharedFromMe: number = Calculator.calcSharedExpenses(myReceipts);
-    const myExpensesFromMe: number = Math.floor((myItemsFromMe + sharedFromMe) * 100) / 100;
+    // --- Me ---
+    const myExpensesFromMe: number = parseFloat(Calculator.calcPersonalExpenses(myReceipts).toFixed(2));
+    const myExpensesFromOther: number = parseFloat(Calculator.calcRejectedExpenses(otherReceipts).toFixed(2));
 
-    const myItemsFromOther: number = Calculator.calcRejectedExpenses(otherReceipts);
-    const otherItemsFromMe: number = Calculator.calcRejectedExpenses(myReceipts);
-    const sharedFromOther: number = Calculator.calcSharedExpenses(otherReceipts);
-    const myExpensesFromOther: number = Math.floor((myItemsFromOther + sharedFromOther) * 100) / 100;
+    const myTotalExpenses: number = parseFloat(BigNumber(sharedExpenses).plus(myExpensesFromMe).plus(myExpensesFromOther).multipliedBy(-1).toFixed(2));
+    // --- Other ---
+    const otherExpensesFromMe: number = parseFloat(Calculator.calcRejectedExpenses(myReceipts).toFixed(2));
+    const otherExpensesFromOther: number = parseFloat(Calculator.calcPersonalExpenses(otherReceipts).toFixed(2));
 
-    const myTotalExpenses: number = Math.floor((myExpensesFromOther + myExpensesFromMe) * 100) / 100;
-
-    const rejectedFromMe: number = Calculator.calcRejectedExpenses(myReceipts);
-    const result: number = Math.floor((myTotalExpenses - myReceiptsExpenses) * 100) / 100;
+    const otherTotalExpenses: number = parseFloat(BigNumber(sharedExpenses).plus(otherExpensesFromMe).plus(otherExpensesFromOther).multipliedBy(-1).toFixed(2));
+    // --- Final Calculation ---
+    const myPaidValue: number = parseFloat(Calculator.calcReceiptsExpenses(myReceipts).toFixed(2));
+    const myLeftOverExpenses = parseFloat(BigNumber(myPaidValue).plus(myTotalExpenses).toFixed(2)); // minus == schulden & plus === bekomme geld
+    const otherPaidValue: number = parseFloat(Calculator.calcReceiptsExpenses(otherReceipts).toFixed(2));
+    const otherLeftOverExpenses = parseFloat(BigNumber(otherPaidValue).plus(otherTotalExpenses).toFixed(2));
+    // --- Result ---
+    const result: number = otherLeftOverExpenses <= 0 ? myLeftOverExpenses : otherLeftOverExpenses; // Negative number means other
 
     function handleFileUpload(e: ChangeEvent<HTMLInputElement>) {
         uploadFile(e.target.files, isFirst).then(() => {
@@ -96,17 +102,18 @@ export default function PersonCard(props: {
     }
 
     function handleDownLoad() {
+        const isPayerMe: boolean = myLeftOverExpenses <= 0;
         const resultData: IResult = {
-            payerName: result <= 0 ? otherName : myName,
-            receiverName: result <= 0 ? myName : otherName,
-            payerExpenses: result <= 0 ? otherReceiptsExpenses : myReceiptsExpenses,
-            receiverExpenses: result <= 0 ? myReceiptsExpenses : otherReceiptsExpenses,
-            sharedFromPayer: result <= 0 ? sharedFromOther : sharedFromMe,
-            sharedFromReceiver: result <= 0 ? sharedFromMe : sharedFromOther,
-            payerItemsFromPayer: result <= 0 ? otherItemsFromOther : myItemsFromMe,
-            receiverItemsFromReceiver: result <= 0 ? myItemsFromMe : otherItemsFromOther,
-            receiverItemsFromPayer: result <= 0 ? myItemsFromOther : otherItemsFromMe,
-            payerItemsFromReceiver: result <= 0 ? otherItemsFromMe : myItemsFromOther,
+            payerName: isPayerMe ? myName : otherName,
+            receiverName: isPayerMe ? otherName : myName,
+            payerExpenses: isPayerMe ? myTotalExpenses : otherTotalExpenses,
+            receiverExpenses: isPayerMe ? otherTotalExpenses : myTotalExpenses,
+            sharedFromPayer: isPayerMe ? sharedExpensesFromMe.toNumber() : sharedExpensesFromOther.toNumber(),
+            sharedFromReceiver: isPayerMe ? sharedExpensesFromOther.toNumber() : sharedExpensesFromMe.toNumber(),
+            payerItemsFromPayer: isPayerMe ? myExpensesFromMe : otherExpensesFromOther,
+            receiverItemsFromReceiver: isPayerMe ? otherExpensesFromOther : myExpensesFromMe,
+            receiverItemsFromPayer: isPayerMe ? otherExpensesFromMe : myExpensesFromOther,
+            payerItemsFromReceiver: isPayerMe ? myExpensesFromOther : otherExpensesFromMe,
             result: result
         };
 
@@ -120,17 +127,9 @@ export default function PersonCard(props: {
             }} />
             <ReceiptsOverview
                 myName={myName}
-                otherName={otherName}
-                myReceiptsExpenses={myReceiptsExpenses}
-                myItemsFromMe={myItemsFromMe}
-                sharedFromMe={sharedFromMe}
-                myExpensesFromMe={myExpensesFromMe}
-                myItemsFromOther={myItemsFromOther}
-                sharedFromOther={sharedFromOther}
-                myExpensesFromOther={myExpensesFromOther}
+                myReceiptsExpenses={myPaidValue}
                 myTotalExpenses={myTotalExpenses}
-                rejectedFromMe={rejectedFromMe}
-                result={result}
+                result={myLeftOverExpenses}
             />
             <div className={[styles.fileControls].join(' ')}>
                 <button className={[styles.fancyButton].join('')} onClick={() => {
