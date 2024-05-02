@@ -17,6 +17,7 @@ export default function ReceiptManager(props: {
     } = props;
 
     const storage = useStorage();
+    const [showFirstTable, setShowFirstTable] = useState<boolean>(true);
 
     const [firstPersonName, setFirstPersonName] = useState<string>('');
     const [firstReceipts, setFirstReceipts] = useState<IReceipt[]>([]);
@@ -129,6 +130,11 @@ export default function ReceiptManager(props: {
                 setReceipts={setReceipts}
                 isInEditMode={isInEditMode}
                 setIsInEditMode={setIsInEditMode}
+                switchToNextTable={
+                    () => {
+                        setShowFirstTable(!isFirst);
+                    }
+                }
             />
             : <ReceiptsTable
                 myName={myName}
@@ -138,6 +144,11 @@ export default function ReceiptManager(props: {
                 setReceipts={setReceipts}
                 isInEditMode={isInEditMode}
                 setIsInEditMode={setIsInEditMode}
+                switchToNextTable={
+                    () => {
+                        setShowFirstTable(!isFirst);
+                    }
+                }
             />
             ;
     }
@@ -166,10 +177,10 @@ export default function ReceiptManager(props: {
                     setReceipts={setReceipts}
                 />
             </div>
-            {firstReceipts.length !== 0 &&
+            {firstReceipts.length !== 0 && showFirstTable &&
                 getReceiptsTable(isFristInEditMode, firstPersonName, secondPersonName, true, firstReceipts)
             }
-            {secondReceipts.length !== 0 &&
+            {secondReceipts.length !== 0 && !showFirstTable &&
                 getReceiptsTable(isSecondInEditMode, secondPersonName, firstPersonName, false, secondReceipts)
             }
         </div>

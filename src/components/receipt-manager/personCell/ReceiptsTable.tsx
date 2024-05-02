@@ -3,7 +3,7 @@ import styles from '@/styles/components/receipt-manager/personCell/ReceiptsTable
 import { IReceipt } from '@/interfaces/IReceipt';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import { Category } from "@/enums/Category";
-import { Pencil } from 'lucide-react';
+import { ArrowUp01, ArrowUpIcon, Pencil, Table } from 'lucide-react';
 import * as ReceiptModifier from '@/handlers/ReceiptModifier';
 
 export default function ReceiptsTable(props: {
@@ -12,8 +12,9 @@ export default function ReceiptsTable(props: {
     isFirst: boolean,
     myReceipts: IReceipt[],
     isInEditMode: boolean,
-    setIsInEditMode: (isInEditMode: boolean, isFirst: boolean) => void
+    setIsInEditMode: (isInEditMode: boolean, isFirst: boolean) => void,
     setReceipts: (receipts: IReceipt[], isFirst: boolean) => void,
+    switchToNextTable: () => void
 }) {
     const {
         myName,
@@ -22,7 +23,8 @@ export default function ReceiptsTable(props: {
         myReceipts,
         isInEditMode,
         setReceipts,
-        setIsInEditMode
+        setIsInEditMode,
+        switchToNextTable
     } = props;
 
     function selectCategory(receiptNum: number, itemNum: number, isFirstList: boolean, selectedCategory: Category) {
@@ -178,27 +180,48 @@ export default function ReceiptsTable(props: {
     return (
         <div className={[styles.receiptsTable].join(' ')}>
             <div className={styles.headerSplit}>
-                <h2>{myName} Receipts</h2>
-                <button className={[styles.fancyButton, isInEditMode ? styles.isActive : ''].join(' ')} onClick={() => {
-                    setIsInEditMode(!isInEditMode, isFirst);
-                }}><Pencil width={16} /> Edit</button>
+                <div className={[styles.leftSide].join(' ')}>
+                    <h2>{myName} Receipts</h2>
+                </div>
+                <div className={[styles.rightSide].join(' ')}>
+                    <button className={[styles.fancyButton].join(' ')} onClick={() => {
+                        const top = document.getElementById(isFirst + 'top-of-table');
+                        if (top) {
+                            top.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" })
+                        }
+                    }}><ArrowUpIcon width={16} /> Top</button>
+                    <button className={[styles.fancyButton].join(' ')} onClick={() => {
+                        setIsInEditMode(!isInEditMode, isFirst);
+                    }}><Pencil width={16} /> Edit</button>
+                    {isFirst
+                        ? <button className={[styles.fancyButton].join(' ')} onClick={() => {
+                            switchToNextTable();
+                        }}><Table width={16} />Next</button>
+                        : <button className={[styles.fancyButton].join(' ')} onClick={() => {
+                            switchToNextTable();
+                        }}><Table width={16} />Prev</button>
+                    }
+                </div>
             </div>
-            <table className={[styles.table].join(' ')}>
-                <thead>
-                    <tr>
-                        <th>Item / Store Name</th>
-                        <th>Price €</th>
-                        <th>Amount</th>
-                        <th >{isFirst ? myName : otherName}</th>
-                        <th>Shared</th>
-                        <th >{isFirst ? otherName : myName}</th>
-                        <th >Category</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {...generateTableRows(isFirst, myReceipts)}
-                </tbody>
-            </table>
-        </div>
+            <div className={[styles.tableWrapper].join(' ')}>
+                <div id={isFirst + 'top-of-table'}></div>
+                <table className={[styles.table].join(' ')}>
+                    <thead>
+                        <tr>
+                            <th>Item / Store Name</th>
+                            <th>Price €</th>
+                            <th>Amount</th>
+                            <th >{isFirst ? myName : otherName}</th>
+                            <th>Shared</th>
+                            <th >{isFirst ? otherName : myName}</th>
+                            <th >Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {...generateTableRows(isFirst, myReceipts)}
+                    </tbody>
+                </table>
+            </div>
+        </div >
     );
 }
