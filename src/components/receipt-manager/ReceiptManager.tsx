@@ -171,10 +171,10 @@ export default function ReceiptManager(props: {
                     setReceipts={setReceipts}
                 />
             </div>
-            {firstReceipts.length !== 0 && showFirstTable &&
+            {showFirstTable &&
                 getReceiptsTable(isFristInEditMode, firstPersonName, secondPersonName, true, firstReceipts)
             }
-            {secondReceipts.length !== 0 && !showFirstTable &&
+            {!showFirstTable &&
                 getReceiptsTable(isSecondInEditMode, secondPersonName, firstPersonName, false, secondReceipts)
             }
         </div>

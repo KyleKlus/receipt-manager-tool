@@ -3,8 +3,9 @@ import styles from '@/styles/components/receipt-manager/personCell/ReceiptsTable
 import { IReceipt } from '@/interfaces/IReceipt';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import { Category } from "@/enums/Category";
-import { ArrowUp01, ArrowUpIcon, Pencil, Table } from 'lucide-react';
+import { ArrowUp01, ArrowUpIcon, Pencil, Table, UserRound } from 'lucide-react';
 import * as ReceiptModifier from '@/handlers/ReceiptModifier';
+import PersonCard from './PersonCard';
 
 export default function ReceiptsTable(props: {
     myName: string,
@@ -181,7 +182,7 @@ export default function ReceiptsTable(props: {
         <div className={[styles.receiptsTable].join(' ')}>
             <div className={styles.headerSplit}>
                 <div className={[styles.leftSide].join(' ')}>
-                    <h2>{myName} Receipts</h2>
+                    <h3>{myName} Receipts</h3>
                 </div>
                 <div className={[styles.rightSide].join(' ')}>
                     <button className={[styles.fancyButton].join(' ')} onClick={() => {
@@ -196,10 +197,10 @@ export default function ReceiptsTable(props: {
                     {isFirst
                         ? <button className={[styles.fancyButton].join(' ')} onClick={() => {
                             switchToNextTable();
-                        }}><Table width={16} />Next</button>
+                        }}><UserRound width={16} />Next</button>
                         : <button className={[styles.fancyButton].join(' ')} onClick={() => {
                             switchToNextTable();
-                        }}><Table width={16} />Prev</button>
+                        }}><UserRound width={16} />Prev</button>
                     }
                 </div>
             </div>

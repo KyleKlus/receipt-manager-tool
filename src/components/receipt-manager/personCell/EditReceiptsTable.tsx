@@ -3,7 +3,7 @@ import styles from '@/styles/components/receipt-manager/personCell/ReceiptsTable
 import { IReceipt } from '@/interfaces/IReceipt';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import { Category, DEFAULT_CATEGORY } from "@/enums/Category";
-import { Pencil, Plus, Save, Table, X } from 'lucide-react';
+import { ArrowUpIcon, Pencil, Plus, Save, Table, UserRound, X } from 'lucide-react';
 import * as ReceiptModifier from '@/handlers/ReceiptModifier';
 import { useState } from 'react';
 import moment from 'moment';
@@ -141,19 +141,26 @@ export default function ReceiptsTable(props: {
                 </div>
                 <div className={[styles.rightSide].join(' ')}>
                     <button className={[styles.fancyButton].join(' ')} onClick={() => {
+                        const top = document.getElementById(isFirst + 'top-of-edit-table');
+                        if (top) {
+                            top.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" })
+                        }
+                    }}><ArrowUpIcon width={16} /> Top</button>
+                    <button className={[styles.fancyButton].join(' ')} onClick={() => {
                         setIsInEditMode(!isInEditMode, isFirst);
                     }}><Save width={16} /> Save</button>
                     {isFirst
                         ? <button className={[styles.fancyButton].join(' ')} onClick={() => {
                             switchToNextTable();
-                        }}><Table width={16} />Next</button>
+                        }}><UserRound width={16} />Next</button>
                         : <button className={[styles.fancyButton].join(' ')} onClick={() => {
                             switchToNextTable();
-                        }}><Table width={16} />Prev</button>
+                        }}><UserRound width={16} />Prev</button>
                     }
                 </div>
             </div>
             <div className={[styles.tableWrapper].join(' ')}>
+                <div id={isFirst + 'top-of-edit-table'}></div>
                 <table className={[styles.table].join(' ')}>
                     <thead>
                         <tr>

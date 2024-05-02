@@ -4,6 +4,9 @@ import { IReceiptItem } from "@/interfaces/IReceiptItem";
 import BigNumber from 'bignumber.js';
 
 export function deepCopyReceipts(receipts: IReceipt[]): IReceipt[] {
+    if (receipts.length === 0) {
+        return [];
+    }
     return JSON.parse(JSON.stringify(receipts)) as IReceipt[]
 }
 

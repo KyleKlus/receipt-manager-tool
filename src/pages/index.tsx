@@ -56,28 +56,10 @@ export default function Home() {
           href={process.env.basePath + "/favicon-16x16.png"}
         />
       </Head>
-      <Header>
-        <ScrollNavLink
-          className={headerStyles.headerNavLink}
-          elementName="https://kyleklus.github.io/#heroPage"
-          displayText="Home"
-        />
-        <ScrollNavLink
-          className={headerStyles.headerNavLink}
-          elementName="https://kyleklus.github.io/#portfolioPage"
-          displayText="Portfolio"
-        />
-        <ScrollNavLink
-          className={headerStyles.headerNavLink}
-          elementName="https://kyleklus.github.io/#aboutPage"
-          displayText="About"
-        />
-        <ThemeButton />
-      </Header>
       <Main>
         <div id={'top'}></div>
-        <Content className={['applyHeaderOffset'].join(' ')}>
-          <ReceiptManager/>
+        <Content className={[].join(' ')}>
+          <ReceiptManager />
         </Content>
         <Footer />
       </Main>
