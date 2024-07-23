@@ -22,6 +22,7 @@ export default function ReceiptsTable(props: {
     switchToDone: () => void,
     setPersonName: (name: string, isFirst: boolean) => void,
     uploadFile: (files: FileList | null, isFirst: boolean) => Promise<void>,
+    setCategories: (categories: string[]) => void,
 }) {
     const {
         myName,
@@ -35,13 +36,14 @@ export default function ReceiptsTable(props: {
         switchToNextTable,
         switchToDone,
         setPersonName,
-        uploadFile
+        uploadFile,
+        setCategories
     } = props;
-    
-    const [categoryOptions, setCategories] = useState(categories.map((key) => ({ value: key, label: key })));
+
+    const categoryOptions = categories.map((key) => ({ value: key, label: key }));
 
     const handleCreate = (inputValue: string, receiptNum: number, itemNum: number, isFirstList: boolean) => {
-        setCategories([...categoryOptions, { value: inputValue, label: inputValue }]);
+        setCategories([...categories, inputValue]);
         selectCategory(receiptNum, itemNum, isFirstList, inputValue);
     };
 

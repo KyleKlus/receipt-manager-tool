@@ -225,6 +225,7 @@ export default function ReceiptManager(props: {
                 isInEditMode={isInEditMode}
                 setIsInEditMode={setIsInEditMode}
                 uploadFile={uploadFile}
+                setCategories={(categories: string[]) => { setCategories([...categories]) }}
                 switchToDone={() => {
                     setIsDone(true);
                 }}
