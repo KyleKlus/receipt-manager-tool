@@ -106,7 +106,7 @@
 
 .table :is(td, th):is(:nth-child(4), :nth-child(6), :nth-child(5)) {
     padding: 8px 0px !important;
-    min-width: 10ch;
+    min-width: 8ch;
 }
 
 .table :is(td, th):nth-child(4) button {
@@ -141,7 +141,7 @@
 
 .table :is(td, th):nth-child(7) {
     max-width: 25ch;
-    min-width: 20ch;
+    min-width: 18ch;
     overflow: auto;
 }
 
