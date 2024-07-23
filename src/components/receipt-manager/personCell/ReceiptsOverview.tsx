@@ -39,7 +39,6 @@ export default function ReceiptsOverview(props: {
                 }
                 <div>{Math.abs(result).toFixed(2)} €</div>
             </div>
-            <hr />
         </div>
     );
 }

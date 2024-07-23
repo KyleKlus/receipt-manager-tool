@@ -58,10 +58,7 @@ export default function Home() {
       </Head>
       <Main>
         <div id={'top'}></div>
-        <Content className={[].join(' ')}>
           <ReceiptManager />
-        </Content>
-        <Footer />
       </Main>
     </>
   );

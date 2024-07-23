@@ -3,29 +3,35 @@ import styles from '@/styles/components/receipt-manager/personCell/ReceiptsTable
 import { IReceipt } from '@/interfaces/IReceipt';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import { Category } from "@/enums/Category";
-import { ArrowUp01, ArrowUpIcon, Pencil, Table, UserRound } from 'lucide-react';
+import { ArrowUp, ArrowUpCircle, Goal, Pencil, UserRound, X } from 'lucide-react';
 import * as ReceiptModifier from '@/handlers/ReceiptModifier';
-import PersonCard from './PersonCard';
+import { ChangeEvent } from 'react';
 
 export default function ReceiptsTable(props: {
     myName: string,
+    myReceipts: IReceipt[],
     otherName: string,
     isFirst: boolean,
-    myReceipts: IReceipt[],
     isInEditMode: boolean,
     setIsInEditMode: (isInEditMode: boolean, isFirst: boolean) => void,
     setReceipts: (receipts: IReceipt[], isFirst: boolean) => void,
-    switchToNextTable: () => void
+    switchToNextTable: () => void,
+    switchToDone: () => void,
+    setPersonName: (name: string, isFirst: boolean) => void,
+    uploadFile: (files: FileList | null, isFirst: boolean) => Promise<void>,
 }) {
     const {
         myName,
         otherName,
         isFirst,
-        myReceipts,
         isInEditMode,
+        myReceipts,
         setReceipts,
         setIsInEditMode,
-        switchToNextTable
+        switchToNextTable,
+        switchToDone,
+        setPersonName,
+        uploadFile
     } = props;
 
     function selectCategory(receiptNum: number, itemNum: number, isFirstList: boolean, selectedCategory: Category) {
@@ -66,6 +72,12 @@ export default function ReceiptsTable(props: {
     function toggleAllMyItems(receiptNum: number, isFirstList: boolean) {
         const receipts: IReceipt[] = myReceipts;
         setReceipts(ReceiptModifier.toggleAllMyItems(receipts, receiptNum), isFirstList);
+    }
+
+    function handleFileUpload(e: ChangeEvent<HTMLInputElement>) {
+        uploadFile(e.target.files, isFirst).then(() => {
+            e.target.value = '';
+        });
     }
 
     function generateTableRows(isFirst: boolean, myReceipts: IReceipt[]): JSX.Element[] {
@@ -182,15 +194,31 @@ export default function ReceiptsTable(props: {
         <div className={[styles.receiptsTable].join(' ')}>
             <div className={styles.headerSplit}>
                 <div className={[styles.leftSide].join(' ')}>
-                    <h3>{myName} Receipts</h3>
+                    <h3>{<input className={[styles.personName].join(' ')} type={'text'} value={myName} placeholder={'New name...'} onChange={(e) => {
+                        setPersonName(e.currentTarget.value, isFirst);
+                    }} />
+                    }&#39;s Receipts</h3>
                 </div>
                 <div className={[styles.rightSide].join(' ')}>
+
+                </div>
+                <div className={[styles.rightSide].join(' ')}>
+                    <button className={[styles.fancyButton].join(' ')} onClick={(e) => {
+                        if (typeof window !== null && typeof window !== undefined) {
+                            window.document.getElementById(isFirst ? 'firstUpload' : 'secondUpload')!.click()
+                        }
+                    }}><ArrowUpCircle width={16} /> Upload</button>
+                    <button className={[styles.fancyButton].join(' ')} onClick={() => {
+                        setReceipts([], isFirst);
+                    }}><X width={16} /> Clear</button>
+                    <input type='file' id={isFirst ? 'firstUpload' : 'secondUpload'} accept='.csv, .xlsx' multiple={true} onChange={handleFileUpload} style={{ display: 'none' }} />
+                    <hr />
                     <button className={[styles.fancyButton].join(' ')} onClick={() => {
                         const top = document.getElementById(isFirst + 'top-of-table');
                         if (top) {
                             top.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" })
                         }
-                    }}><ArrowUpIcon width={16} /> Top</button>
+                    }}><ArrowUp width={16} /> Top</button>
                     <button className={[styles.fancyButton].join(' ')} onClick={() => {
                         setIsInEditMode(!isInEditMode, isFirst);
                     }}><Pencil width={16} /> Edit</button>
@@ -202,6 +230,9 @@ export default function ReceiptsTable(props: {
                             switchToNextTable();
                         }}><UserRound width={16} />Prev</button>
                     }
+                    <button className={[styles.fancyButton].join(' ')} onClick={() => {
+                        switchToDone();
+                    }}><Goal width={16} />Done</button>
                 </div>
             </div>
             <div className={[styles.tableWrapper].join(' ')}>

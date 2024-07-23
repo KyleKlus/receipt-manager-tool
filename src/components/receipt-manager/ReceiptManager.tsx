@@ -2,12 +2,19 @@
 import styles from '@/styles/components/receipt-manager/ReceiptManager.module.css';
 import { useEffect, useState } from 'react';
 import { IReceipt } from '@/interfaces/IReceipt';
-import PersonCard from '@/components/receipt-manager/personCell/PersonCard';
 import ReceiptsTable from '@/components/receipt-manager/personCell/ReceiptsTable';
 import useStorage from '@/hooks/useStorage';
 import * as UploadHandler from '@/handlers/UploadHandler';
 import { IExcelImportData } from '@/handlers/UploadHandler';
 import EditReceiptsTable from './personCell/EditReceiptsTable';
+import PersonCard from './personCell/PersonCard';
+import { ArrowBigLeft, ArrowLeft, Download, StepBack } from 'lucide-react';
+import BigNumber from 'bignumber.js';
+import moment from 'moment';
+import * as DownloadHandler from '@/handlers/DownloadHandler';
+import * as Calculator from '@/handlers/Calculator';
+import { IResult } from '@/interfaces/IResult';
+
 
 export default function ReceiptManager(props: {
 }) {
@@ -16,6 +23,7 @@ export default function ReceiptManager(props: {
 
     const storage = useStorage();
     const [showFirstTable, setShowFirstTable] = useState<boolean>(true);
+    const [isDone, setIsDone] = useState<boolean>(false);
 
     const [firstPersonName, setFirstPersonName] = useState<string>('');
     const [firstReceipts, setFirstReceipts] = useState<IReceipt[]>([]);
@@ -98,6 +106,48 @@ export default function ReceiptManager(props: {
         }
     }
 
+    // --- shared ---
+    const sharedExpensesFromFirst = Calculator.calcSharedExpenses(firstReceipts);
+    const sharedExpensesFromSecond: BigNumber = Calculator.calcSharedExpenses(secondReceipts);
+    const sharedExpenses = parseFloat(sharedExpensesFromFirst.plus(sharedExpensesFromSecond).toFixed(2));
+
+    // --- First ---
+    const firstExpensesFromFirst: number = parseFloat(Calculator.calcPersonalExpenses(firstReceipts).toFixed(2));
+    const firstExpensesFromSecond: number = parseFloat(Calculator.calcRejectedExpenses(secondReceipts).toFixed(2));
+
+    const firstTotalExpenses: number = parseFloat(BigNumber(sharedExpenses).plus(firstExpensesFromFirst).plus(firstExpensesFromSecond).multipliedBy(-1).toFixed(2));
+    // --- Second ---
+    const secondExpensesFromFirst: number = parseFloat(Calculator.calcRejectedExpenses(firstReceipts).toFixed(2));
+    const secondExpensesFromSecond: number = parseFloat(Calculator.calcPersonalExpenses(secondReceipts).toFixed(2));
+
+    const secondTotalExpenses: number = parseFloat(BigNumber(sharedExpenses).plus(secondExpensesFromFirst).plus(secondExpensesFromSecond).multipliedBy(-1).toFixed(2));
+    // --- Final Calculation ---
+    const firstPaidValue: number = parseFloat(Calculator.calcReceiptsExpenses(firstReceipts).toFixed(2));
+    const firstLeftOverExpenses = parseFloat(BigNumber(firstPaidValue).plus(firstTotalExpenses).toFixed(2)); // minus == schulden & plus === bekomme geld
+    const secondPaidValue: number = parseFloat(Calculator.calcReceiptsExpenses(secondReceipts).toFixed(2));
+    const secondLeftOverExpenses = parseFloat(BigNumber(secondPaidValue).plus(secondTotalExpenses).toFixed(2));
+    // --- Result ---
+    const result: number = secondLeftOverExpenses <= 0 ? firstLeftOverExpenses : secondLeftOverExpenses; // Negative number means second
+
+    function handleDownLoad() {
+        const isPayerFirstPerson: boolean = firstLeftOverExpenses <= 0;
+        const resultData: IResult = {
+            payerName: isPayerFirstPerson ? firstPersonName : secondPersonName,
+            receiverName: isPayerFirstPerson ? secondPersonName : firstPersonName,
+            payerExpenses: isPayerFirstPerson ? firstTotalExpenses : secondTotalExpenses,
+            receiverExpenses: isPayerFirstPerson ? secondTotalExpenses : firstTotalExpenses,
+            sharedFromPayer: isPayerFirstPerson ? sharedExpensesFromFirst.toNumber() : sharedExpensesFromSecond.toNumber(),
+            sharedFromReceiver: isPayerFirstPerson ? sharedExpensesFromSecond.toNumber() : sharedExpensesFromFirst.toNumber(),
+            payerItemsFromPayer: isPayerFirstPerson ? firstExpensesFromFirst : secondExpensesFromSecond,
+            receiverItemsFromReceiver: isPayerFirstPerson ? secondExpensesFromSecond : firstExpensesFromFirst,
+            receiverItemsFromPayer: isPayerFirstPerson ? secondExpensesFromFirst : firstExpensesFromSecond,
+            payerItemsFromReceiver: isPayerFirstPerson ? firstExpensesFromSecond : secondExpensesFromFirst,
+            result: result
+        };
+
+        DownloadHandler.downloadEXCEL('Expenses_' + moment().format('DD_MM_YYYY'), firstPersonName, secondPersonName, firstReceipts.slice(0), secondReceipts.slice(0), resultData);
+    }
+
     async function uploadFile(files: FileList | null, isFirst: boolean): Promise<void> {
         if (files === null || files === undefined) { return; }
 
@@ -119,7 +169,7 @@ export default function ReceiptManager(props: {
         }
     }
 
-    function getReceiptsTable(isInEditMode: boolean, myName: string, otherName: string, isFirst: boolean, myReceipts: IReceipt[]): JSX.Element {
+    function getReceiptsTable(isInEditMode: boolean, myName: string, otherName: string, isFirst: boolean, myReceipts: IReceipt[], otherReceipts: IReceipt[]): JSX.Element {
         return isInEditMode
             ? <EditReceiptsTable
                 myName={myName}
@@ -128,10 +178,21 @@ export default function ReceiptManager(props: {
                 setReceipts={setReceipts}
                 isInEditMode={isInEditMode}
                 setIsInEditMode={setIsInEditMode}
+                uploadFile={uploadFile}
                 switchToNextTable={() => {
                     setShowFirstTable(!isFirst);
                 }}
-            />
+                switchToDone={() => {
+                    setIsDone(true);
+                }}
+                setPersonName={(name: string, isFirst: boolean) => {
+                    if (isFirst) {
+                        saveFirstPersonName(name);
+                    } else {
+                        saveSecondPersonName(name);
+                    }
+                }}
+                otherReceipts={otherReceipts} />
             : <ReceiptsTable
                 myName={myName}
                 otherName={otherName}
@@ -140,43 +201,67 @@ export default function ReceiptManager(props: {
                 setReceipts={setReceipts}
                 isInEditMode={isInEditMode}
                 setIsInEditMode={setIsInEditMode}
+                uploadFile={uploadFile}
+                switchToDone={() => {
+                    setIsDone(true);
+                }}
                 switchToNextTable={() => {
                     setShowFirstTable(!isFirst);
+                }}
+                setPersonName={(name: string, isFirst: boolean) => {
+                    if (isFirst) {
+                        saveFirstPersonName(name)
+                    } else {
+                        saveSecondPersonName(name)
+                    }
                 }}
             />
             ;
     }
 
     return (
-        <div className={[styles.receiptManager].join(' ')}>
-            <div className={[styles.split].join(' ')}>
-                <PersonCard
-                    myName={firstPersonName}
-                    otherName={secondPersonName}
-                    isFirst={true}
-                    myReceipts={firstReceipts}
-                    otherReceipts={secondReceipts}
-                    setPersonName={saveFirstPersonName}
-                    uploadFile={uploadFile}
-                    setReceipts={setReceipts}
-                />
-                <PersonCard
-                    myName={secondPersonName}
-                    otherName={firstPersonName}
-                    isFirst={false}
-                    myReceipts={secondReceipts}
-                    otherReceipts={firstReceipts}
-                    setPersonName={saveSecondPersonName}
-                    uploadFile={uploadFile}
-                    setReceipts={setReceipts}
-                />
-            </div>
-            {showFirstTable &&
-                getReceiptsTable(isFristInEditMode, firstPersonName, secondPersonName, true, firstReceipts)
+        <div className={[styles.receiptManager, isDone ? styles.isDone : ''].join(' ')}>
+            {!isDone && showFirstTable &&
+                getReceiptsTable(isFristInEditMode, firstPersonName, secondPersonName, true, firstReceipts, secondReceipts)
             }
-            {!showFirstTable &&
-                getReceiptsTable(isSecondInEditMode, secondPersonName, firstPersonName, false, secondReceipts)
+            {!isDone && !showFirstTable &&
+                getReceiptsTable(isSecondInEditMode, secondPersonName, firstPersonName, false, secondReceipts, firstReceipts)
             }
+            {isDone &&
+                <div className={[styles.split].join(' ')}>
+                    <PersonCard
+                        myName={firstPersonName}
+                        myReceipts={firstReceipts}
+                        otherReceipts={secondReceipts}
+                    />
+                    <PersonCard
+                        myName={secondPersonName}
+                        myReceipts={secondReceipts}
+                        otherReceipts={firstReceipts}
+                    />
+                </div>
+            }
+            {isDone &&
+                <div className={[styles.split].join(' ')}>
+                    <button
+                        className={[styles.fancyButton, styles.backButton].join(' ')}
+                        onClick={() => {
+                            setIsDone(false);
+                        }}
+                    >
+                        <ArrowLeft width={20} />Back
+                    </button>
+                    <button
+                        disabled={
+                            firstReceipts.length === 0 &&
+                            secondReceipts.length === 0
+                        }
+                        className={[styles.fancyButton, styles.backButton].join(' ')}
+                        onClick={handleDownLoad}
+                    >
+                        <Download width={20} /> Export
+                    </button>
+                </div>}
         </div>
     );
 }
