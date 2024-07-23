@@ -1,4 +1,3 @@
-import { Category } from "@/enums/Category";
 import { IReceipt } from "@/interfaces/IReceipt";
 import { IReceiptItem } from "@/interfaces/IReceiptItem";
 import { IResult } from "@/interfaces/IResult";
@@ -65,13 +64,12 @@ function _convertReceiptsToList(myReceipts: IReceipt[]): IExportExpensesRow[] {
 
     for (let index = 0; index < receipts.length; index++) {
         const receipt = receipts[index];
-        const parsedReceiptCategory = JSON.stringify(receipt.categoryForAllItems).replace('"', '').replace('"', '')
 
         data.push({
             Name: receipt.store,
             Price: receipt.totalPrice,
             Amount: 0,
-            Category: isNumeric(parsedReceiptCategory) ? Category[receipt.categoryForAllItems] : parsedReceiptCategory,
+            Category: receipt.categoryForAllItems,
             IsMyItem: receipt.isAllMine,
             IsSharedItem: receipt.isAllShared,
             IsRejectedItem: receipt.isAllRejected,
@@ -80,12 +78,11 @@ function _convertReceiptsToList(myReceipts: IReceipt[]): IExportExpensesRow[] {
 
         for (let jndex = 0; jndex < receipt.items.length; jndex++) {
             const item = receipt.items[jndex];
-            const parsedCategory = JSON.stringify(item.category).replace('"', '').replace('"', '')
             data.push({
                 Name: item.name,
                 Price: item.price,
                 Amount: item.amount,
-                Category: isNumeric(parsedCategory) ? Category[item.category] : parsedCategory,
+                Category: item.category,
                 IsMyItem: item.isMine,
                 IsSharedItem: item.isShared,
                 IsRejectedItem: item.isRejected,
@@ -135,12 +132,11 @@ function _prepExpenses(myReceipts: IReceipt[], otherReceipts: IReceipt[]): IExpo
     });
 
     const data: IExportExpensesRow[] = filteredList.concat(otherFilteredList).slice(0).map((e) => {
-        const parsedCategory = JSON.stringify(e.category).replace('"', '').replace('"', '')
         const row: IExportExpensesRow = {
             Name: e.name,
             Price: e.price,
             Amount: e.amount,
-            Category: isNumeric(parsedCategory) ? Category[e.category] : parsedCategory,
+            Category: e.category,
             IsMyItem: e.isMine,
             IsSharedItem: e.isShared,
             IsRejectedItem: e.isRejected,

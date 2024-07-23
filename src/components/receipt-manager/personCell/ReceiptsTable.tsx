@@ -1,11 +1,13 @@
 /** @format */
+import React from "react";
 import styles from '@/styles/components/receipt-manager/personCell/ReceiptsTable.module.css'
 import { IReceipt } from '@/interfaces/IReceipt';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
-import { Category } from "@/enums/Category";
 import { Sailboat, Star, ArrowUp, ArrowUpCircle, Goal, Handshake, Pencil, UserRound, X } from 'lucide-react';
 import * as ReceiptModifier from '@/handlers/ReceiptModifier';
-import { ChangeEvent } from 'react';
+import { ChangeEvent, useState } from 'react';
+import { unrecognizedItemName } from '@/handlers/UploadHandler';
+import CreatableSelect from 'react-select/creatable';
 
 export default function ReceiptsTable(props: {
     myName: string,
@@ -13,6 +15,7 @@ export default function ReceiptsTable(props: {
     otherName: string,
     isFirst: boolean,
     isInEditMode: boolean,
+    categories: string[],
     setIsInEditMode: (isInEditMode: boolean, isFirst: boolean) => void,
     setReceipts: (receipts: IReceipt[], isFirst: boolean) => void,
     switchToNextTable: () => void,
@@ -26,6 +29,7 @@ export default function ReceiptsTable(props: {
         isFirst,
         isInEditMode,
         myReceipts,
+        categories,
         setReceipts,
         setIsInEditMode,
         switchToNextTable,
@@ -33,8 +37,15 @@ export default function ReceiptsTable(props: {
         setPersonName,
         uploadFile
     } = props;
+    
+    const [categoryOptions, setCategories] = useState(categories.map((key) => ({ value: key, label: key })));
 
-    function selectCategory(receiptNum: number, itemNum: number, isFirstList: boolean, selectedCategory: Category) {
+    const handleCreate = (inputValue: string, receiptNum: number, itemNum: number, isFirstList: boolean) => {
+        setCategories([...categoryOptions, { value: inputValue, label: inputValue }]);
+        selectCategory(receiptNum, itemNum, isFirstList, inputValue);
+    };
+
+    function selectCategory(receiptNum: number, itemNum: number, isFirstList: boolean, selectedCategory: string) {
         const receipts: IReceipt[] = myReceipts;
         setReceipts(ReceiptModifier.selectCategory(receipts, receiptNum, itemNum, selectedCategory), isFirstList);
     }
@@ -54,7 +65,7 @@ export default function ReceiptsTable(props: {
         setReceipts(ReceiptModifier.toggleMyItem(receipts, receiptNum, itemNum), isFirstList);
     }
 
-    function selectCategoryForAllItems(receiptNum: number, isFirstList: boolean, selectedCategory: Category) {
+    function selectCategoryForAllItems(receiptNum: number, isFirstList: boolean, selectedCategory: string) {
         const receipts: IReceipt[] = myReceipts;
         setReceipts(ReceiptModifier.selectCategoryForAllItems(receipts, receiptNum, selectedCategory), isFirstList);
     }
@@ -236,20 +247,28 @@ export default function ReceiptsTable(props: {
                             </td>
                         }
                         <td className={[].join(' ')}>
-                            <select defaultValue={Category[item.category]} onChange={(e) => {
-                                // Parse the category from the select event
-                                const categoryName: string = e.currentTarget.value;
-                                const categoryIndex: number = (Object.keys(Category) as Array<keyof typeof Category>)
-                                    .slice((Object.keys(Category).length / 2))
-                                    .map((key) => { return key.toString() })
-                                    .indexOf(categoryName);
-                                const selectedCategory: Category = categoryIndex;
-                                selectCategory(receiptNum, itemNum, isFirst, selectedCategory)
-                            }}>
-                                {(Object.keys(Category) as Array<keyof typeof Category>)
-                                    .slice((Object.keys(Category).length / 2))
-                                    .map((key, n) => { return (<option key={n} value={key}>{key}</option>) })}
-                            </select>
+                            <CreatableSelect
+                                styles={{
+                                    control: (base) => ({ ...base, height: '32px', minHeight: '32px' }),
+                                    dropdownIndicator: (base) => ({ ...base, padding: '4px' }),
+                                }}
+                                isDisabled={item.name === unrecognizedItemName}
+                                onChange={(newValue) => {
+                                    if (newValue === null) { return; }
+                                    selectCategory(receiptNum, itemNum, isFirst, newValue.value)
+                                }}
+                                onCreateOption={(inputValue: string) => {
+                                    handleCreate(inputValue, receiptNum, itemNum, isFirst)
+                                }}
+                                hideSelectedOptions={false}
+                                name="category"
+                                getOptionLabel={(option) => {
+                                    return option.label
+                                }}
+                                getOptionValue={(option) => option.value}
+                                options={categoryOptions}
+                                value={categoryOptions.filter((option) => option.value === item.category)[0]}
+                            />
                         </td>
                     </tr>
                 )

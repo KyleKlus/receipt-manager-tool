@@ -8,13 +8,13 @@ import * as UploadHandler from '@/handlers/UploadHandler';
 import { IExcelImportData } from '@/handlers/UploadHandler';
 import EditReceiptsTable from './personCell/EditReceiptsTable';
 import PersonCard from './personCell/PersonCard';
-import { ArrowBigLeft, ArrowLeft, Download, StepBack } from 'lucide-react';
+import { ArrowLeft, Download } from 'lucide-react';
 import BigNumber from 'bignumber.js';
 import moment from 'moment';
 import * as DownloadHandler from '@/handlers/DownloadHandler';
 import * as Calculator from '@/handlers/Calculator';
 import { IResult } from '@/interfaces/IResult';
-
+import { defaultCategories } from '@/enums/Category';
 
 export default function ReceiptManager(props: {
 }) {
@@ -34,11 +34,23 @@ export default function ReceiptManager(props: {
     const [isSecondInEditMode, setIsSecondInEditMode] = useState<boolean>(false);
 
     const [isLocalDataLoaded, setIsLocalDataLoaded] = useState<boolean>(false);
+    const [categories, setCategories] = useState(Object.keys(defaultCategories));
 
     useEffect(() => {
         // Load saved data
         loadDataFromLocalStorage()
     });
+
+    function completeMissingCategories(receipts: IReceipt[]) {
+        receipts.forEach((receipt) => {
+            receipt.items.forEach((item) => {
+                const doesCategoryExist = categories.find((key) => key === item.category);
+                if (doesCategoryExist === undefined) {
+                    setCategories([...categories, item.category]);
+                }
+            });
+        });
+    }
 
     function loadDataFromLocalStorage() {
         if (isLocalDataLoaded || !storage.isBrowser) { return; }
@@ -55,12 +67,19 @@ export default function ReceiptManager(props: {
 
         if (storage.isItemSet('firstReceipts', 'local')) {
             const firstReceipts = storage.getItem('firstReceipts', 'local');
-            setFirstReceipts(JSON.parse(firstReceipts) as IReceipt[]);
+            const receipts = JSON.parse(firstReceipts) as IReceipt[];
+
+            completeMissingCategories(receipts);
+            setFirstReceipts(receipts);
         }
 
         if (storage.isItemSet('secondReceipts', 'local')) {
             const secondReceipts = storage.getItem('secondReceipts', 'local');
-            setSecondReceipts(JSON.parse(secondReceipts) as IReceipt[]);
+            const receipts = JSON.parse(secondReceipts) as IReceipt[];
+
+            completeMissingCategories(receipts);
+
+            setSecondReceipts(receipts);
         }
 
         setIsLocalDataLoaded(true);
@@ -158,6 +177,9 @@ export default function ReceiptManager(props: {
             } else if (files[i].name.endsWith('xlsx')) {
                 const excelImportData: IExcelImportData = await UploadHandler.parseXLSXToReceipts(files[i]);
 
+                completeMissingCategories(excelImportData.firstReceipts);
+                completeMissingCategories(excelImportData.secondReceipts);
+
                 if (firstPersonName === excelImportData.firstName) {
                     setReceipts(excelImportData.firstReceipts, true);
                     setReceipts(excelImportData.secondReceipts, false);
@@ -195,6 +217,7 @@ export default function ReceiptManager(props: {
                 otherReceipts={otherReceipts} />
             : <ReceiptsTable
                 myName={myName}
+                categories={categories}
                 otherName={otherName}
                 isFirst={isFirst}
                 myReceipts={myReceipts}
@@ -220,48 +243,53 @@ export default function ReceiptManager(props: {
     }
 
     return (
-        <div className={[styles.receiptManager, isDone ? styles.isDone : ''].join(' ')}>
-            {!isDone && showFirstTable &&
-                getReceiptsTable(isFristInEditMode, firstPersonName, secondPersonName, true, firstReceipts, secondReceipts)
-            }
-            {!isDone && !showFirstTable &&
-                getReceiptsTable(isSecondInEditMode, secondPersonName, firstPersonName, false, secondReceipts, firstReceipts)
-            }
-            {isDone &&
-                <div className={[styles.split].join(' ')}>
-                    <PersonCard
-                        myName={firstPersonName}
-                        myReceipts={firstReceipts}
-                        otherReceipts={secondReceipts}
-                    />
-                    <PersonCard
-                        myName={secondPersonName}
-                        myReceipts={secondReceipts}
-                        otherReceipts={firstReceipts}
-                    />
+        <>
+            {isLocalDataLoaded
+                ? <div className={[styles.receiptManager, isDone ? styles.isDone : ''].join(' ')}>
+                    {!isDone && showFirstTable &&
+                        getReceiptsTable(isFristInEditMode, firstPersonName, secondPersonName, true, firstReceipts, secondReceipts)
+                    }
+                    {!isDone && !showFirstTable &&
+                        getReceiptsTable(isSecondInEditMode, secondPersonName, firstPersonName, false, secondReceipts, firstReceipts)
+                    }
+                    {isDone &&
+                        <div className={[styles.split].join(' ')}>
+                            <PersonCard
+                                myName={firstPersonName}
+                                myReceipts={firstReceipts}
+                                otherReceipts={secondReceipts}
+                            />
+                            <PersonCard
+                                myName={secondPersonName}
+                                myReceipts={secondReceipts}
+                                otherReceipts={firstReceipts}
+                            />
+                        </div>
+                    }
+                    {isDone &&
+                        <div className={[styles.split].join(' ')}>
+                            <button
+                                className={[styles.fancyButton, styles.backButton].join(' ')}
+                                onClick={() => {
+                                    setIsDone(false);
+                                }}
+                            >
+                                <ArrowLeft width={20} />Back
+                            </button>
+                            <button
+                                disabled={
+                                    firstReceipts.length === 0 &&
+                                    secondReceipts.length === 0
+                                }
+                                className={[styles.fancyButton, styles.backButton].join(' ')}
+                                onClick={handleDownLoad}
+                            >
+                                <Download width={20} /> Export
+                            </button>
+                        </div>}
                 </div>
+                : <div style={{ backgroundColor: 'var(--bg-color-00)' }}></div>
             }
-            {isDone &&
-                <div className={[styles.split].join(' ')}>
-                    <button
-                        className={[styles.fancyButton, styles.backButton].join(' ')}
-                        onClick={() => {
-                            setIsDone(false);
-                        }}
-                    >
-                        <ArrowLeft width={20} />Back
-                    </button>
-                    <button
-                        disabled={
-                            firstReceipts.length === 0 &&
-                            secondReceipts.length === 0
-                        }
-                        className={[styles.fancyButton, styles.backButton].join(' ')}
-                        onClick={handleDownLoad}
-                    >
-                        <Download width={20} /> Export
-                    </button>
-                </div>}
-        </div>
+        </>
     );
 }

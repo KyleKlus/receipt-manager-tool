@@ -1,4 +1,4 @@
-import { Category } from "@/enums/Category";
+import { defaultCategories } from "@/enums/Category";
 import { IReceipt } from "@/interfaces/IReceipt";
 import { IReceiptItem } from "@/interfaces/IReceiptItem";
 import BigNumber from 'bignumber.js';
@@ -35,10 +35,10 @@ export function setItemPrice(receipts: IReceipt[], receiptNum: number, itemNum: 
     return updatedList;
 }
 
-export function selectCategory(receipts: IReceipt[], receiptNum: number, itemNum: number, selectedCategory: Category): IReceipt[] {
+export function selectCategory(receipts: IReceipt[], receiptNum: number, itemNum: number, selectedCategory: string): IReceipt[] {
     const updatedList: IReceipt[] = receipts;
 
-    updatedList[receiptNum].categoryForAllItems = Category.None;
+    updatedList[receiptNum].categoryForAllItems = defaultCategories.None;
     updatedList[receiptNum].items[itemNum].category = selectedCategory;
 
     return updatedList;
@@ -103,7 +103,7 @@ export function deleteItem(receipts: IReceipt[], receiptNum: number, itemNum: nu
     return updatedList;
 }
 
-export function selectCategoryForAllItems(receipts: IReceipt[], receiptNum: number, selectedCategory: Category) {
+export function selectCategoryForAllItems(receipts: IReceipt[], receiptNum: number, selectedCategory: string) {
     const updatedList: IReceipt[] = receipts;
 
     updatedList[receiptNum].categoryForAllItems = selectedCategory;

@@ -1,4 +1,4 @@
-import { Category, DEFAULT_CATEGORY } from "@/enums/Category";
+import { DEFAULT_CATEGORY, defaultCategories } from "@/enums/Category";
 import { IReceipt } from "@/interfaces/IReceipt";
 import { IReceiptItem } from "@/interfaces/IReceiptItem";
 import BigNumber from 'bignumber.js';
@@ -19,10 +19,8 @@ export interface IExcelImportData {
 
 const receiptDataSet = new Set(['Date', 'Store', 'Description']);
 const itemDataSet = new Set(['Name', 'Price', 'Amount',]);
-const unrecognizedStoreName = 'Unrecognized Store';
-const unrecognizedItemName = 'Unrecognized Item';
-
-
+export const unrecognizedStoreName = 'Unrecognized Store';
+export const unrecognizedItemName = 'Unrecognized Item';
 
 export async function parseXLSXToReceipts(file: File): Promise<IExcelImportData> {
     let receipts: IExcelImportData = {
@@ -100,7 +98,7 @@ export function parseCSVToReceipts(file: File, ownerName: string): Promise<IRece
                         isRejected: false,
                         price: itemName === unrecognizedItemName ? 0 : price,
                         amount: itemName === unrecognizedItemName ? 0 : itemAmount,
-                        category: itemName === unrecognizedItemName ? Category.None : price < 0 ? Category.Discount : DEFAULT_CATEGORY
+                        category: itemName === unrecognizedItemName ? defaultCategories.None : price < 0 ? defaultCategories.Discount : DEFAULT_CATEGORY
                     }
                 })
 
@@ -112,7 +110,7 @@ export function parseCSVToReceipts(file: File, ownerName: string): Promise<IRece
                     store: storeName,
                     date: receiptData[0] !== '' ? moment().format('DD.MM.YYYY') : '',
                     owner: ownerName,
-                    categoryForAllItems: Category.None,
+                    categoryForAllItems: defaultCategories.None,
                     isAllShared: false,
                     isAllRejected: false,
                     isAllMine: false,
@@ -140,7 +138,7 @@ function _parseRawExcelData(data: any[][], owner: string): IReceipt[] {
                 store: row[0],
                 date: '',
                 owner: owner,
-                categoryForAllItems: Category[row[3] as keyof typeof Category],
+                categoryForAllItems: row[3],
                 isAllMine: row[4],
                 isAllShared: row[5],
                 isAllRejected: row[6],
@@ -153,7 +151,7 @@ function _parseRawExcelData(data: any[][], owner: string): IReceipt[] {
                 name: row[0],
                 price: row[1],
                 amount: row[2],
-                category: Category[row[3] as keyof typeof Category],
+                category: row[3],
                 isMine: row[4],
                 isShared: row[5],
                 isRejected: row[6]

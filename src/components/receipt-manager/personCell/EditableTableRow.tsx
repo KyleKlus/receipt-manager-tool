@@ -2,7 +2,7 @@
 import styles from '@/styles/components/receipt-manager/personCell/ReceiptsTable.module.css'
 import { IReceipt } from '@/interfaces/IReceipt';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
-import { Category, DEFAULT_CATEGORY } from "@/enums/Category";
+import { DEFAULT_CATEGORY, defaultCategories } from "@/enums/Category";
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import BigNumber from 'bignumber.js';
@@ -38,7 +38,7 @@ export default function EditableTableRow(props: {
         }
 
         tmpReceipts[receiptNum].totalPrice = new BigNumber(tmpReceipts[receiptNum].totalPrice).plus(newItem.price).toNumber();
-        tmpReceipts[receiptNum].categoryForAllItems = Category.None;
+        tmpReceipts[receiptNum].categoryForAllItems = defaultCategories.None;
         tmpReceipts[receiptNum].items.push(newItem);
         tmpReceipts[receiptNum].isAllMine = false;
         tmpReceipts[receiptNum].isAllShared = false;

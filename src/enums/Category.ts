@@ -1,24 +1,24 @@
-export enum Category {
-    Food,
-    Pet,
-    Household,
-    Cleaning,
-    Hygiene,
-    Sport,
-    Clothing,
-    Activities,
-    Medicine,
-    Dates,
-    Presents,
-    Stationery,
-    Travel,
-    Misc,
-    Rent,
-    Growth,
-    Formalities,
-    Leisure,
-    Discount,
-    None
-}
+export var defaultCategories: { [key: string]: string } = {
+    Food: 'Food',
+    Pet: 'Pet',
+    Household: 'Household',
+    Cleaning: 'Cleaning',
+    Hygiene: 'Hygiene',
+    Sport: 'Sport',
+    Clothing: 'Clothing',
+    Activities: 'Activities',
+    Medicine: 'Medicine',
+    Dates: 'Dates',
+    Presents: 'Presents',
+    Stationery: 'Stationery',
+    Travel: 'Travel',
+    Misc: 'Misc',
+    Rent: 'Rent',
+    Growth: 'Growth',
+    Formalities: 'Formalities',
+    Leisure: 'Leisure',
+    Discount: 'Discount',
+    None: 'None'
+};
 
-export const DEFAULT_CATEGORY: Category = Category.Food;
+export const DEFAULT_CATEGORY: string = defaultCategories.Food;

@@ -142,17 +142,22 @@
 .table :is(td, th):nth-child(7) {
     max-width: 25ch;
     min-width: 20ch;
+    overflow: auto;
 }
 
-.table :is(td, th):nth-child(7) select {
-    width: 100%;
-    height: 100%;
-    font-size: medium;
-    background-color: var(--bg-color-00);
-
+.table :is(td, th):nth-child(7) > div {
+    overflow: unset;
+    margin: 4px 8px 4px 4px;
+    box-shadow: var(--shadowElevation_2);
+    border-radius: 4px;
 }
 
-.table td div {
+.table :is(td, th):nth-child(7) input {
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.table td > div {
     text-align: left;
     white-space: nowrap;
     overflow: hidden;

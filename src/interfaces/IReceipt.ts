@@ -1,4 +1,3 @@
-import { Category } from "@/enums/Category";
 import { IReceiptItem } from "./IReceiptItem";
 
 export interface IReceipt {
@@ -7,7 +6,7 @@ export interface IReceipt {
     owner: string;
     totalPrice: number;
     items: IReceiptItem[];
-    categoryForAllItems: Category
+    categoryForAllItems: string;
     isAllShared: boolean;
     isAllRejected: boolean;
     isAllMine: boolean;
