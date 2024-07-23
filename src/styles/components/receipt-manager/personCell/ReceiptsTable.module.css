@@ -100,32 +100,43 @@
     text-align: end;
 }
 
-.table :is(td, th):nth-child(4) {
-    background-color: hsla(0, 50%, 50%, 0.253);
-}
-
 .table :is(td, th):nth-child(4) > button {
     margin: 0 auto;
 }
 
-.table :is(td, th):nth-child(4) input:checked::after {
-    background-color: hsla(0, 50%, 50%, 1) !important;
+.table :is(td, th):is(:nth-child(4), :nth-child(6), :nth-child(5)) {
+    padding: 8px 0px !important;
+    min-width: 10ch;
 }
 
-.table :is(td, th):nth-child(6) {
-    background-color: hsla(56, 50%, 50%, 0.253);
+.table :is(td, th):nth-child(4) button {
+    margin-left: 7px;
+    width: calc(100% - 8px);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
-.table :is(td, th):nth-child(6) input:checked::after {
-    background-color: hsla(56, 50%, 50%, 1) !important;
+.table :is(td, th):nth-child(4) button.isSelected {
+    background-color: hsla(0, 100%, 73%, 0.508) !important;
 }
 
-.table :is(td, th):nth-child(5) {
-    background-color: hsla(118, 50%, 50%, 0.253);
+.table :is(td, th):nth-child(5) button {
+    border-radius: 0;
 }
 
-.table :is(td, th):nth-child(5) input:checked::after {
-    background-color: hsla(118, 50%, 50%, 1) !important;
+.table :is(td, th):nth-child(5) button.isSelected {
+    background-color: rgba(97, 228, 92, 0.532) !important;
+}
+
+.table :is(td, th):nth-child(6) button {
+    margin-left: 1px;
+    width: calc(100% - 8px);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.table :is(td, th):nth-child(6) button.isSelected {
+    background-color: hsla(56, 92%, 64%, 0.534) !important;
 }
 
 .table :is(td, th):nth-child(7) {
@@ -138,6 +149,7 @@
     height: 100%;
     font-size: medium;
     background-color: var(--bg-color-00);
+
 }
 
 .table td div {
@@ -147,56 +159,24 @@
     text-overflow: ellipsis;
 }
 
-.table td input[type='radio'] {
-    background-color: var(--bg-color-10);
-    border-radius: 10px;
-    outline: 1px solid var(--bg-color-80);
-    box-shadow: var(--shadowElevation_4);
-    cursor: pointer;
-    display: inline-block;
-    height: 15px;
-    position: relative;
-    width: 15px;
-    appearance: none;
-    transition: background-color 200ms ease, outline-color 200ms ease, box-shadow 200ms ease;
-}
-
-.table td input[type='radio']:checked {
-    cursor: default;
-}
-
-.table td input[type='radio']:not(:checked):hover {
-    background-color: var(--bg-color-30);
-    outline-color: var(--bg-color-90);
-    box-shadow: var(--shadowElevation_4);
-}
-
-.table td input[type='radio']:disabled {
-    display: none;
-}
-
-.table td input[type='radio']:after {
-    background-color: var(--bg-color-10);
-    border-radius: 25px;
-    content: '';
-    display: block;
-    height: 11px;
-    left: 2px;
-    position: relative;
-    top: 2px;
-    width: 11px;
-    transition: background-color 200ms ease;
-}
-
-.table td input[type='radio']:checked:after {
-    background-color: var(--color-accent-10);
-}
-
 td.personTableCellHeader {
     padding: 10px 5px !important;
     font-weight: bold;
     border-bottom-color: var(--bg-color-70);
     background-color: var(--bg-color-05);
+}
+
+.toggleButton {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: hsla(0, 0%, 100%, 0.299);
+    outline: 1px solid var(--bg-color-60);
+}
+
+.toggleButton:hover {
+    background-color: hsla(0, 0%, 100%, 0.64);
 }
 
 /* Mobile */
@@ -220,20 +200,6 @@ td.personTableCellHeader {
         max-width: 25ch;
         min-width: 20ch;
         padding-left: 5px;
-    }
-
-    .table td input[type='radio'] {
-        border-radius: 10px;
-        height: 10px;
-        width: 10px;
-    }
-
-    .table td input[type='radio']:after {
-        border-radius: 15px;
-        height: 6px;
-        left: 2px;
-        top: 2px;
-        width: 6px;
     }
 
     .personHeader button {

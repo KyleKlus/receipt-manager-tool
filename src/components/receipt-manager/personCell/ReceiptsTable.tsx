@@ -3,7 +3,7 @@ import styles from '@/styles/components/receipt-manager/personCell/ReceiptsTable
 import { IReceipt } from '@/interfaces/IReceipt';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import { Category } from "@/enums/Category";
-import { ArrowUp, ArrowUpCircle, Goal, Pencil, UserRound, X } from 'lucide-react';
+import { Sailboat, Star, ArrowUp, ArrowUpCircle, Goal, Handshake, Pencil, UserRound, X } from 'lucide-react';
 import * as ReceiptModifier from '@/handlers/ReceiptModifier';
 import { ChangeEvent } from 'react';
 
@@ -101,25 +101,62 @@ export default function ReceiptsTable(props: {
                     <td className={[styles.personTableCellHeader].join(' ')}>{''}</td>
                     {isFirst &&
                         <td className={[styles.personTableCellHeader].join(' ')}>
-                            <input checked={receipt.isAllMine} type='radio' onChange={() => { toggleAllMyItems(receiptNum, isFirst) }} />
+                            <button
+                                className={[
+                                    styles.toggleButton,
+                                    receipt.isAllMine ? styles.isSelected : ''
+                                ].join(' ')}
+                                onClick={() => { toggleAllMyItems(receiptNum, isFirst) }}>
+                                <Sailboat size={16} />
+                            </button>
+
+                            {/* <input checked={receipt.isAllMine} type='radio' onChange={() => { toggleAllMyItems(receiptNum, isFirst) }} /> */}
                         </td>
                     }
                     {!isFirst &&
                         <td className={[styles.personTableCellHeader].join(' ')}>
-                            <input checked={receipt.isAllRejected} type='radio' onChange={() => { toggleAllRejectedItems(receiptNum, isFirst) }} />
+                            <button
+                                className={[
+                                    styles.toggleButton,
+                                    receipt.isAllRejected ? styles.isSelected : ''
+                                ].join(' ')}
+                                onClick={() => { toggleAllRejectedItems(receiptNum, isFirst) }}>
+                                <Sailboat size={16} />
+                            </button>
                         </td>
                     }
                     <td className={[styles.personTableCellHeader].join(' ')}>
-                        <input checked={receipt.isAllShared} type='radio' onChange={() => { toggleAllSharedItems(receiptNum, isFirst) }} />
+                        <button
+                            className={[
+                                styles.toggleButton,
+                                receipt.isAllShared ? styles.isSelected : ''
+                            ].join(' ')}
+                            onClick={() => { toggleAllSharedItems(receiptNum, isFirst) }}>
+                            <Handshake size={16} />
+                        </button>
                     </td>
                     {!isFirst &&
                         <td className={[styles.personTableCellHeader].join(' ')}>
-                            <input checked={receipt.isAllMine} type='radio' onChange={() => { toggleAllMyItems(receiptNum, isFirst) }} />
+                            <button
+                                className={[
+                                    styles.toggleButton,
+                                    receipt.isAllMine ? styles.isSelected : ''
+                                ].join(' ')}
+                                onClick={() => { toggleAllMyItems(receiptNum, isFirst) }}>
+                                <Star size={16} />
+                            </button>
                         </td>
                     }
                     {isFirst &&
                         <td className={[styles.personTableCellHeader].join(' ')}>
-                            <input checked={receipt.isAllRejected} type='radio' onChange={() => { toggleAllRejectedItems(receiptNum, isFirst) }} />
+                            <button
+                                className={[
+                                    styles.toggleButton,
+                                    receipt.isAllRejected ? styles.isSelected : ''
+                                ].join(' ')}
+                                onClick={() => { toggleAllRejectedItems(receiptNum, isFirst) }}>
+                                <Star size={16} />
+                            </button>
                         </td>
                     }
                     <td className={[styles.personTableCellHeader].join(' ')}>
@@ -141,31 +178,63 @@ export default function ReceiptsTable(props: {
                         </td>
                         {isFirst &&
                             <td className={[].join(' ')}>
-                                <input checked={item.isMine} type='radio' onChange={() => { toggleMyItem(receiptNum, itemNum, isFirst) }} />
+                                <button
+                                    className={[
+                                        styles.toggleButton,
+                                        item.isMine ? styles.isSelected : ''
+                                    ].join(' ')}
+                                    onClick={() => { toggleMyItem(receiptNum, itemNum, isFirst) }}>
+                                    <Sailboat size={16} />
+                                </button>
                             </td>
                         }
                         {!isFirst &&
                             <td className={[].join(' ')}>
-                                <input checked={item.isRejected} type='radio' onChange={() => { toggleRejectItem(receiptNum, itemNum, isFirst) }} />
+                                <button
+                                    className={[
+                                        styles.toggleButton,
+                                        item.isRejected ? styles.isSelected : ''
+                                    ].join(' ')}
+                                    onClick={() => { toggleRejectItem(receiptNum, itemNum, isFirst) }}>
+                                    <Sailboat size={16} />
+                                </button>
                             </td>
                         }
-
                         <td className={[].join(' ')}>
-                            <input checked={item.isShared} type='radio' onChange={() => { toggleShareItem(receiptNum, itemNum, isFirst) }} />
+                            <button
+                                className={[
+                                    styles.toggleButton,
+                                    item.isShared ? styles.isSelected : ''
+                                ].join(' ')}
+                                onClick={() => { toggleShareItem(receiptNum, itemNum, isFirst) }}>
+                                <Handshake size={16} />
+                            </button>
                         </td>
-
-
                         {!isFirst &&
                             <td className={[].join(' ')}>
-                                <input checked={item.isMine} type='radio' onChange={() => { toggleMyItem(receiptNum, itemNum, isFirst) }} />
+                                <button
+                                    className={[
+                                        styles.toggleButton,
+                                        item.isMine ? styles.isSelected : ''
+                                    ].join(' ')}
+                                    onClick={() => { toggleMyItem(receiptNum, itemNum, isFirst) }}>
+                                    <Star size={16} />
+                                </button>
                             </td>
                         }
                         {isFirst &&
                             <td className={[].join(' ')}>
-                                <input checked={item.isRejected} type='radio' onChange={() => { toggleRejectItem(receiptNum, itemNum, isFirst) }} />
+                                <button
+                                    className={[
+                                        styles.toggleButton,
+                                        item.isRejected ? styles.isSelected : ''
+                                    ].join(' ')}
+                                    onClick={() => { toggleRejectItem(receiptNum, itemNum, isFirst) }}>
+                                    <Star size={16} />
+                                </button>
+
                             </td>
                         }
-
                         <td className={[].join(' ')}>
                             <select defaultValue={Category[item.category]} onChange={(e) => {
                                 // Parse the category from the select event
