@@ -96,9 +96,9 @@ export function parseCSVToReceipts(file: File, ownerName: string): Promise<IRece
                         isMine: false,
                         isShared: true,
                         isRejected: false,
-                        price: itemName === unrecognizedItemName ? 0 : price,
-                        amount: itemName === unrecognizedItemName ? 0 : itemAmount,
-                        category: itemName === unrecognizedItemName ? defaultCategories.None : price < 0 ? defaultCategories.Discount : DEFAULT_CATEGORY
+                        price: price,
+                        amount: itemAmount,
+                        category: itemName === unrecognizedItemName ? defaultCategories.None : (price < 0 ? defaultCategories.Discount : DEFAULT_CATEGORY)
                     }
                 })
 
@@ -114,8 +114,8 @@ export function parseCSVToReceipts(file: File, ownerName: string): Promise<IRece
                     isAllShared: false,
                     isAllRejected: false,
                     isAllMine: false,
-                    totalPrice: storeName === unrecognizedStoreName ? 0 : totalPrice.toNumber(),
-                    items: storeName === unrecognizedStoreName ? [] : parsedReceiptItems,
+                    totalPrice: totalPrice.toNumber(),
+                    items: parsedReceiptItems,
                 }
 
                 receipts = receipts.concat(parsedReceipt)

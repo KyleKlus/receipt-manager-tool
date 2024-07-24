@@ -217,7 +217,7 @@ export default function ReceiptsTable(props: {
                             top.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" })
                         }
                     }}><ArrowUp width={16} /> Top</button>
-                    <button className={[styles.fancyButton].join(' ')} onClick={() => {
+                    <button className={[styles.fancyButton, isInEditMode ? styles.isActive : ''].join(' ')} onClick={() => {
                         setIsInEditMode(!isInEditMode, isFirst);
                     }}><Pencil width={16} /> Edit</button>
                     {isFirst

@@ -5,7 +5,7 @@ import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import rowStyles from '@/styles/components/receipt-manager/personCell/TableRow.module.css'
 import tableStyles from '@/styles/components/receipt-manager/personCell/TableRow.module.css'
 import { Handshake, Plus, Sailboat, Save, Star, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import CreatableSelect from 'react-select/creatable';
 
 export interface IEditableData {
@@ -46,10 +46,15 @@ export default function TableRow(props: {
     setCategory?: (category: string) => void,
     updateCategories?: (categories: string[]) => void
 }) {
+    const prevName = useRef(props.isNewRow ? '' : (props.editableData?.name ?? ''));
+    const prevPrice = useRef(props.isNewRow ? '' : (props.editableData?.price ?? ''));
+    const prevAmount = useRef(props.isNewRow ? '' : (props.editableData?.amount ?? ''));
 
     const [newItemName, setNewItemName] = useState<string>(props.isNewRow ? '' : (props.editableData?.name ?? ''));
     const [newItemPrice, setNewItemPrice] = useState<number>(props.isNewRow ? 0 : (props.editableData?.price ?? 0));
     const [newItemAmount, setNewItemAmount] = useState<number>(props.isNewRow ? 0 : (props.editableData?.amount ?? 0));
+
+    const hasDataChanged = (props.rowType === 'Item' && (prevName.current !== newItemName || prevPrice.current !== newItemPrice || prevAmount.current !== newItemAmount)) || (props.rowType === 'Receipt' && prevName.current !== newItemName);
 
     const categoryOptions: {
         value: string;
@@ -130,7 +135,7 @@ export default function TableRow(props: {
                 {/* --- EditMode UI --- */}
                 {props.isEditable &&
                     <div className={[rowStyles.editModeActions].join(' ')}>
-                        <button disabled={!props.isEditable && props.isNewRow} className={tableStyles.fancyButton} onClick={() => {
+                        <button disabled={hasDataChanged ? false : true} className={tableStyles.fancyButton} onClick={() => {
                             // Check if all fields are filled
                             if (
                                 (
@@ -234,7 +239,7 @@ export default function TableRow(props: {
                 }
                 {/* --- EditMode UI --- */}
                 {props.isNewRow &&
-                    <button className={tableStyles.fancyButton} onClick={() => {
+                    <button disabled={hasDataChanged ? false : true} className={tableStyles.fancyButton} onClick={() => {
                         // Check if all fields are filled
                         if (
                             (

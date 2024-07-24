@@ -65,6 +65,11 @@
     margin-right: 8px;
 }
 
+.tableRow.isNewRow > td:nth-child(7) > button:disabled * , .editModeActions > button:disabled *,.tableRow.isNewRow > td:nth-child(7) > button:disabled , .editModeActions > button:disabled {
+    color: gray;
+    cursor: not-allowed;
+}
+
 .editModeActions > button {
     width: calc(50% - 16px) !important;
     margin: unset !important;
