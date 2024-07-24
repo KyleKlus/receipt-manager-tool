@@ -6,7 +6,6 @@ import ReceiptsTable from '@/components/receipt-manager/personCell/ReceiptsTable
 import useStorage from '@/hooks/useStorage';
 import * as UploadHandler from '@/handlers/UploadHandler';
 import { IExcelImportData } from '@/handlers/UploadHandler';
-import EditReceiptsTable from './personCell/EditReceiptsTable';
 import PersonCard from './personCell/PersonCard';
 import { ArrowLeft, Download } from 'lucide-react';
 import BigNumber from 'bignumber.js';
@@ -86,21 +85,25 @@ export default function ReceiptManager(props: {
     }
 
     function saveFirstReceipts(receipts: IReceipt[]) {
+        storage.removeItem('firstReceipts', 'local')
         storage.setItem('firstReceipts', JSON.stringify(receipts), 'local')
-        setFirstReceipts(receipts);
+        setFirstReceipts([...receipts]);
     }
 
     function saveFirstPersonName(name: string) {
+        storage.removeItem('firstName', 'local')
         storage.setItem('firstName', name, 'local')
         setFirstPersonName(name);
     }
 
     function saveSecondReceipts(receipts: IReceipt[]) {
+        storage.removeItem('secondReceipts', 'local')
         storage.setItem('secondReceipts', JSON.stringify(receipts), 'local')
-        setSecondReceipts(receipts);
+        setSecondReceipts([...receipts]);
     }
 
     function saveSecondPersonName(name: string) {
+        storage.removeItem('secondName', 'local')
         storage.setItem('secondName', name, 'local')
         setSecondPersonName(name);
     }
@@ -191,56 +194,32 @@ export default function ReceiptManager(props: {
         }
     }
 
-    function getReceiptsTable(isInEditMode: boolean, myName: string, otherName: string, isFirst: boolean, myReceipts: IReceipt[], otherReceipts: IReceipt[]): JSX.Element {
-        return isInEditMode
-            ? <EditReceiptsTable
-                myName={myName}
-                isFirst={isFirst}
-                myReceipts={myReceipts}
-                setReceipts={setReceipts}
-                isInEditMode={isInEditMode}
-                setIsInEditMode={setIsInEditMode}
-                uploadFile={uploadFile}
-                switchToNextTable={() => {
-                    setShowFirstTable(!isFirst);
-                }}
-                switchToDone={() => {
-                    setIsDone(true);
-                }}
-                setPersonName={(name: string, isFirst: boolean) => {
-                    if (isFirst) {
-                        saveFirstPersonName(name);
-                    } else {
-                        saveSecondPersonName(name);
-                    }
-                }}
-                otherReceipts={otherReceipts} />
-            : <ReceiptsTable
-                myName={myName}
-                categories={categories}
-                otherName={otherName}
-                isFirst={isFirst}
-                myReceipts={myReceipts}
-                setReceipts={setReceipts}
-                isInEditMode={isInEditMode}
-                setIsInEditMode={setIsInEditMode}
-                uploadFile={uploadFile}
-                setCategories={(categories: string[]) => { setCategories([...categories]) }}
-                switchToDone={() => {
-                    setIsDone(true);
-                }}
-                switchToNextTable={() => {
-                    setShowFirstTable(!isFirst);
-                }}
-                setPersonName={(name: string, isFirst: boolean) => {
-                    if (isFirst) {
-                        saveFirstPersonName(name)
-                    } else {
-                        saveSecondPersonName(name)
-                    }
-                }}
-            />
-            ;
+    function getReceiptsTable(isInEditMode: boolean, myName: string, otherName: string, isFirst: boolean, myReceipts: IReceipt[]): JSX.Element {
+        return <ReceiptsTable
+            myName={myName}
+            categories={categories}
+            otherName={otherName}
+            isFirst={isFirst}
+            myReceipts={myReceipts}
+            setReceipts={(receipts: IReceipt[], isFirst: boolean) => { setReceipts(receipts, isFirst) }}
+            isInEditMode={isInEditMode}
+            setIsInEditMode={(isInEditMode: boolean, isFirst: boolean) => { setIsInEditMode(isInEditMode, isFirst) }}
+            uploadFile={async (files: FileList | null, isFirst: boolean) => { await uploadFile(files, isFirst) }}
+            setCategories={(categories: string[]) => { setCategories([...categories]) }}
+            switchToDone={() => {
+                setIsDone(true);
+            }}
+            switchToNextTable={() => {
+                setShowFirstTable(!isFirst);
+            }}
+            setPersonName={(name: string, isFirst: boolean) => {
+                if (isFirst) {
+                    saveFirstPersonName(name)
+                } else {
+                    saveSecondPersonName(name)
+                }
+            }}
+        />;
     }
 
     return (
@@ -248,10 +227,10 @@ export default function ReceiptManager(props: {
             {isLocalDataLoaded
                 ? <div className={[styles.receiptManager, isDone ? styles.isDone : ''].join(' ')}>
                     {!isDone && showFirstTable &&
-                        getReceiptsTable(isFristInEditMode, firstPersonName, secondPersonName, true, firstReceipts, secondReceipts)
+                        getReceiptsTable(isFristInEditMode, firstPersonName, secondPersonName, true, firstReceipts)
                     }
                     {!isDone && !showFirstTable &&
-                        getReceiptsTable(isSecondInEditMode, secondPersonName, firstPersonName, false, secondReceipts, firstReceipts)
+                        getReceiptsTable(isSecondInEditMode, secondPersonName, firstPersonName, false, secondReceipts)
                     }
                     {isDone &&
                         <div className={[styles.split].join(' ')}>

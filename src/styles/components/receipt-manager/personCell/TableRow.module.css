@@ -1,0 +1,136 @@
+.tableRow > td > div {
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tableRow.isNewRow > td:nth-child(1):not(.receiptRowCell) > input {
+    margin-left: -40px;
+}
+
+.tableRow > td:nth-child(4) > button {
+    margin-left: 7px;
+    width: calc(100% - 8px);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.tableRow > td:nth-child(4) > button.isSelected {
+    background-color: hsla(0, 100%, 73%, 0.508) !important;
+}
+
+.tableRow.isEditable > td:nth-child(5), .tableRow.isEditable > td:nth-child(6), .tableRow.isEditable > td:nth-child(7){
+    display: none;
+}
+
+.tableRow > td:nth-child(5) > button {
+    border-radius: 0;
+}
+
+.tableRow > td:nth-child(5) > button.isSelected {
+    background-color: rgba(97, 228, 92, 0.532) !important;
+}
+
+.tableRow > td:nth-child(6) > button {
+    margin-left: 1px;
+    width: calc(100% - 8px);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.tableRow > td:nth-child(6) > button.isSelected {
+    background-color: hsla(56, 92%, 64%, 0.534) !important;
+}
+
+.tableRow > td:nth-child(7) > div {
+    overflow: unset;
+    margin: 4px 8px 4px 4px;
+    box-shadow: var(--shadowElevation_2);
+    border-radius: 4px;
+}
+
+.tableRow > td:nth-child(7) input {
+    box-shadow: none !important;
+    border-radius: 0;
+}
+
+.tableRow.isNewRow > td:nth-child(7) > button , .editModeActions > button{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+    gap: 8px;
+    width: calc(100% - 14px);
+    margin-right: 8px;
+}
+
+.editModeActions > button {
+    width: calc(50% - 16px) !important;
+    margin: unset !important;
+}
+
+.textInput {
+    font-size: 1rem;
+}
+
+.toggleButton {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: hsla(0, 0%, 100%, 0.299);
+    outline: 1px solid var(--bg-color-60);
+}
+
+.toggleButton:hover {
+    background-color: hsla(0, 0%, 100%, 0.64);
+}
+
+td.receiptRowCell {
+    padding: 10px 5px !important;
+    font-weight: bold !important;
+    background-color: var(--bg-color-10) !important;
+    border-bottom-color: var(--bg-color-70) !important;
+}
+
+.editModeActions {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 16px;
+    padding: 2px;
+}
+
+/* Mobile */
+@media (max-width: 970px) {
+    td.receiptRowCell {
+        font-size: small;
+    }
+}
+
+@media (max-width: 860px) {
+    td.receiptRowCell {
+        font-size: smaller;
+    }
+}
+
+@media (max-width: 400px) {
+
+    .tableRow > td > div {
+        max-width: 100px;
+    }
+}
+
+@media (max-width: 300px) {
+
+    .tableRow > td > div {
+        max-width: 80px;
+    }
+}
+
+/* Tablet and Smaller Desktop */
+@media (min-width: 601px) and (max-width: 1120px) {}
+
+@media (prefers-color-scheme: dark) {}

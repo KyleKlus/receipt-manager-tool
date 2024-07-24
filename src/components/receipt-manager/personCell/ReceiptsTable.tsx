@@ -1,13 +1,13 @@
 /** @format */
-import React from "react";
+import React, { useEffect } from "react";
 import styles from '@/styles/components/receipt-manager/personCell/ReceiptsTable.module.css'
 import { IReceipt } from '@/interfaces/IReceipt';
 import { IReceiptItem } from '@/interfaces/IReceiptItem';
 import { Sailboat, Star, ArrowUp, ArrowUpCircle, Goal, Handshake, Pencil, UserRound, X } from 'lucide-react';
 import * as ReceiptModifier from '@/handlers/ReceiptModifier';
 import { ChangeEvent, useState } from 'react';
-import { unrecognizedItemName } from '@/handlers/UploadHandler';
-import CreatableSelect from 'react-select/creatable';
+import TableRow, { IEditableData } from "./TableRow";
+import { DEFAULT_CATEGORY } from "@/enums/Category";
 
 export default function ReceiptsTable(props: {
     myName: string,
@@ -40,12 +40,9 @@ export default function ReceiptsTable(props: {
         setCategories
     } = props;
 
-    const categoryOptions = categories.map((key) => ({ value: key, label: key }));
+    const [reload, setReload] = useState<boolean>(false);
 
-    const handleCreate = (inputValue: string, receiptNum: number, itemNum: number, isFirstList: boolean) => {
-        setCategories([...categories, inputValue]);
-        selectCategory(receiptNum, itemNum, isFirstList, inputValue);
-    };
+    useEffect(() => { if (reload) { setReload(!reload) } }, [reload])
 
     function selectCategory(receiptNum: number, itemNum: number, isFirstList: boolean, selectedCategory: string) {
         const receipts: IReceipt[] = myReceipts;
@@ -65,11 +62,6 @@ export default function ReceiptsTable(props: {
     function toggleMyItem(receiptNum: number, itemNum: number, isFirstList: boolean) {
         const receipts: IReceipt[] = myReceipts;
         setReceipts(ReceiptModifier.toggleMyItem(receipts, receiptNum, itemNum), isFirstList);
-    }
-
-    function selectCategoryForAllItems(receiptNum: number, isFirstList: boolean, selectedCategory: string) {
-        const receipts: IReceipt[] = myReceipts;
-        setReceipts(ReceiptModifier.selectCategoryForAllItems(receipts, receiptNum, selectedCategory), isFirstList);
     }
 
     function toggleAllRejectedItems(receiptNum: number, isFirstList: boolean) {
@@ -93,190 +85,106 @@ export default function ReceiptsTable(props: {
         });
     }
 
-    function generateTableRows(isFirst: boolean, myReceipts: IReceipt[]): JSX.Element[] {
+    function generateItemTableRows(myName: string, isFirst: boolean, receiptNum: number, isInEditMode: boolean, categories: string[]): JSX.Element[] {
         const keyChar: string = isFirst ? 'k' : 'n';
         let key: number = -1;
         const rows: JSX.Element[] = [];
 
-        for (let receiptNum: number = 0; receiptNum < myReceipts.length; receiptNum++) {
-            const receipt: IReceipt = myReceipts[receiptNum];
-            const receiptItems: IReceiptItem[] = receipt.items;
+        isInEditMode && rows.push(
+            <TableRow
+                key={myName + keyChar + key + 'newItemInReceipt'}
+                rowType={"Item"}
+                isNewRow={true}
+                isEditable={isInEditMode}
+                updateData={(newData: IEditableData): void => {
+                    let updatedReceipts = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[];
+                    const newItem: IReceiptItem = {
+                        name: newData.name,
+                        price: newData.price,
+                        amount: newData.amount,
+                        category: DEFAULT_CATEGORY,
+                        isMine: false,
+                        isShared: true,
+                        isRejected: false
+                    }
+
+                    updatedReceipts[receiptNum].isAllShared = false;
+                    updatedReceipts[receiptNum].isAllRejected = false;
+                    updatedReceipts[receiptNum].isAllMine = false;
+                    updatedReceipts[receiptNum].totalPrice += newData.price;
+                    updatedReceipts[receiptNum].items.push(newItem);
+
+                    setReceipts([...updatedReceipts], isFirst);
+                }}
+            />
+        );
+
+        rows.push(...myReceipts[receiptNum].items.map((item, itemNum) => {
             key++;
-
-            rows.push(
-                <tr key={keyChar + key}>
-                    <td className={[styles.personTableCellHeader].join(' ')}>
-                        {receipt.store}
-                    </td>
-                    <td className={[styles.personTableCellHeader].join(' ')}>
-                        {receipt.totalPrice.toFixed(2) + ' €'}
-                    </td>
-                    <td className={[styles.personTableCellHeader].join(' ')}>{''}</td>
-                    {isFirst &&
-                        <td className={[styles.personTableCellHeader].join(' ')}>
-                            <button
-                                className={[
-                                    styles.toggleButton,
-                                    receipt.isAllMine ? styles.isSelected : ''
-                                ].join(' ')}
-                                onClick={() => { toggleAllMyItems(receiptNum, isFirst) }}>
-                                <Sailboat size={16} />
-                            </button>
-
-                            {/* <input checked={receipt.isAllMine} type='radio' onChange={() => { toggleAllMyItems(receiptNum, isFirst) }} /> */}
-                        </td>
+            return (
+                <TableRow
+                    key={myName + keyChar + key}
+                    editableData={{
+                        name: item.name,
+                        price: item.price,
+                        amount: item.amount
+                    }}
+                    rowType={"Item"}
+                    shareState={
+                        isFirst && (item.isMine) || (!isFirst && item.isRejected)
+                            ? "Left"
+                            : (!isFirst && (item.isMine) || (isFirst && item.isRejected) ? "Right" : item.isShared ? "Shared" : undefined)
                     }
-                    {!isFirst &&
-                        <td className={[styles.personTableCellHeader].join(' ')}>
-                            <button
-                                className={[
-                                    styles.toggleButton,
-                                    receipt.isAllRejected ? styles.isSelected : ''
-                                ].join(' ')}
-                                onClick={() => { toggleAllRejectedItems(receiptNum, isFirst) }}>
-                                <Sailboat size={16} />
-                            </button>
-                        </td>
-                    }
-                    <td className={[styles.personTableCellHeader].join(' ')}>
-                        <button
-                            className={[
-                                styles.toggleButton,
-                                receipt.isAllShared ? styles.isSelected : ''
-                            ].join(' ')}
-                            onClick={() => { toggleAllSharedItems(receiptNum, isFirst) }}>
-                            <Handshake size={16} />
-                        </button>
-                    </td>
-                    {!isFirst &&
-                        <td className={[styles.personTableCellHeader].join(' ')}>
-                            <button
-                                className={[
-                                    styles.toggleButton,
-                                    receipt.isAllMine ? styles.isSelected : ''
-                                ].join(' ')}
-                                onClick={() => { toggleAllMyItems(receiptNum, isFirst) }}>
-                                <Star size={16} />
-                            </button>
-                        </td>
-                    }
-                    {isFirst &&
-                        <td className={[styles.personTableCellHeader].join(' ')}>
-                            <button
-                                className={[
-                                    styles.toggleButton,
-                                    receipt.isAllRejected ? styles.isSelected : ''
-                                ].join(' ')}
-                                onClick={() => { toggleAllRejectedItems(receiptNum, isFirst) }}>
-                                <Star size={16} />
-                            </button>
-                        </td>
-                    }
-                    <td className={[styles.personTableCellHeader].join(' ')}>
-                    </td>
-                </tr>
-            );
+                    isNewRow={false}
+                    categories={categories}
+                    category={item.category}
+                    isEditable={isInEditMode}
+                    updateData={(newData: IEditableData): void => {
+                        let updatedReceipts = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[];
 
-            rows.push(...receiptItems.map((item, itemNum) => {
-                key++;
-                return (
-                    <tr key={keyChar + key}>
-                        <td className={[].join(' ')}>
-                            {item.name}
-                        </td>
-                        <td className={[].join(' ')}>
-                            {item.price.toFixed(2) + ' €'}
-                        </td>
-                        <td className={[].join(' ')}>{item.amount}
-                        </td>
-                        {isFirst &&
-                            <td className={[].join(' ')}>
-                                <button
-                                    className={[
-                                        styles.toggleButton,
-                                        item.isMine ? styles.isSelected : ''
-                                    ].join(' ')}
-                                    onClick={() => { toggleMyItem(receiptNum, itemNum, isFirst) }}>
-                                    <Sailboat size={16} />
-                                </button>
-                            </td>
+                        if (newData.name === '') {
+                            updatedReceipts[receiptNum].items = updatedReceipts[receiptNum].items.filter((_, i) => i !== itemNum);
+                        } else {
+                            updatedReceipts[receiptNum].totalPrice = updatedReceipts[receiptNum].totalPrice - item.price + newData.price;
+                            updatedReceipts[receiptNum].items[itemNum].name = newData.name;
+                            updatedReceipts[receiptNum].items[itemNum].price = newData.price;
+                            updatedReceipts[receiptNum].items[itemNum].amount = newData.amount;
                         }
-                        {!isFirst &&
-                            <td className={[].join(' ')}>
-                                <button
-                                    className={[
-                                        styles.toggleButton,
-                                        item.isRejected ? styles.isSelected : ''
-                                    ].join(' ')}
-                                    onClick={() => { toggleRejectItem(receiptNum, itemNum, isFirst) }}>
-                                    <Sailboat size={16} />
-                                </button>
-                            </td>
-                        }
-                        <td className={[].join(' ')}>
-                            <button
-                                className={[
-                                    styles.toggleButton,
-                                    item.isShared ? styles.isSelected : ''
-                                ].join(' ')}
-                                onClick={() => { toggleShareItem(receiptNum, itemNum, isFirst) }}>
-                                <Handshake size={16} />
-                            </button>
-                        </td>
-                        {!isFirst &&
-                            <td className={[].join(' ')}>
-                                <button
-                                    className={[
-                                        styles.toggleButton,
-                                        item.isMine ? styles.isSelected : ''
-                                    ].join(' ')}
-                                    onClick={() => { toggleMyItem(receiptNum, itemNum, isFirst) }}>
-                                    <Star size={16} />
-                                </button>
-                            </td>
-                        }
-                        {isFirst &&
-                            <td className={[].join(' ')}>
-                                <button
-                                    className={[
-                                        styles.toggleButton,
-                                        item.isRejected ? styles.isSelected : ''
-                                    ].join(' ')}
-                                    onClick={() => { toggleRejectItem(receiptNum, itemNum, isFirst) }}>
-                                    <Star size={16} />
-                                </button>
 
-                            </td>
+                        setReceipts([...updatedReceipts], isFirst);
+                    }}
+                    setShareState={function (shareState: "Left" | "Shared" | "Right"): void {
+                        switch (shareState) {
+                            case "Left":
+                                let updatedReceipts = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[];
+
+                                updatedReceipts = updatedReceipts.filter((_, i) => i !== receiptNum);
+                                setReceipts([...updatedReceipts], isFirst);
+                                if (isFirst) {
+                                    toggleMyItem(receiptNum, itemNum, isFirst)
+                                } else {
+                                    toggleRejectItem(receiptNum, itemNum, isFirst)
+                                }
+                                break;
+                            case "Shared":
+                                toggleShareItem(receiptNum, itemNum, isFirst);
+                                break;
+                            case "Right":
+                                if (isFirst) {
+                                    toggleRejectItem(receiptNum, itemNum, isFirst)
+                                } else {
+                                    toggleMyItem(receiptNum, itemNum, isFirst)
+                                }
+                                break;
                         }
-                        <td className={[].join(' ')}>
-                            <CreatableSelect
-                                styles={{
-                                    control: (base) => ({ ...base, height: '32px', minHeight: '32px' }),
-                                    dropdownIndicator: (base) => ({ ...base, padding: '4px' }),
-                                }}
-                                isDisabled={item.name === unrecognizedItemName}
-                                onChange={(newValue) => {
-                                    if (newValue === null) { return; }
-                                    selectCategory(receiptNum, itemNum, isFirst, newValue.value)
-                                }}
-                                onCreateOption={(inputValue: string) => {
-                                    handleCreate(inputValue, receiptNum, itemNum, isFirst)
-                                }}
-                                hideSelectedOptions={false}
-                                name="category"
-                                getOptionLabel={(option) => {
-                                    return option.label
-                                }}
-                                getOptionValue={(option) => option.value}
-                                options={categoryOptions}
-                                value={categoryOptions.filter((option) => option.value === item.category)[0]}
-                            />
-                        </td>
-                    </tr>
-                )
-            }));
-            key++;
-        }
+                    }}
+                    setCategory={(category: string): void => {
+                        selectCategory(receiptNum, itemNum, isFirst, category)
+                    }}
+                    updateCategories={(categories: string[]): void => setCategories(categories)}
+                />
+            )
+        }));
         return rows;
     }
 
@@ -325,25 +233,135 @@ export default function ReceiptsTable(props: {
                     }}><Goal width={16} />Done</button>
                 </div>
             </div>
-            <div className={[styles.tableWrapper].join(' ')}>
-                <div id={isFirst + 'top-of-table'}></div>
-                <table className={[styles.table].join(' ')}>
-                    <thead>
-                        <tr>
-                            <th>Item / Store Name</th>
-                            <th>Price €</th>
-                            <th>Amount</th>
-                            <th >{isFirst ? myName : otherName}</th>
-                            <th>Shared</th>
-                            <th >{isFirst ? otherName : myName}</th>
-                            <th >Category</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {...generateTableRows(isFirst, myReceipts)}
-                    </tbody>
-                </table>
-            </div>
+            {!reload &&
+                <div className={[styles.tableWrapper].join(' ')}>
+                    <div id={isFirst + 'top-of-table'}></div>
+                    <table className={[styles.table].join(' ')}>
+                        <thead>
+                            <tr>
+                                <th>Item / Store Name</th>
+                                <th>Price €</th>
+                                <th>Amount</th>
+                                <th >{isInEditMode ? 'Actions' : (isFirst ? myName : otherName)}</th>
+                                {!isInEditMode && <th>Shared</th>}
+                                {!isInEditMode && <th >{isFirst ? otherName : myName}</th>}
+                                {!isInEditMode && <th >Category</th>}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <TableRow
+                                rowType={"Receipt"}
+                                isNewRow={true}
+                                isEditable={isInEditMode}
+                                updateData={(newData: IEditableData): void => {
+                                    let updatedReceipts = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[];
+                                    const newReceipt: IReceipt = {
+                                        store: newData.name,
+                                        date: "",
+                                        owner: myName,
+                                        totalPrice: 0,
+                                        items: [],
+                                        categoryForAllItems: "None",
+                                        isAllShared: false,
+                                        isAllRejected: false,
+                                        isAllMine: false
+                                    };
+
+                                    updatedReceipts.push(newReceipt);
+
+                                    setReceipts([...updatedReceipts], isFirst);
+                                }} />
+                            <TableRow
+                                rowType={"Item"}
+                                isNewRow={true}
+                                isEditable={isInEditMode}
+                                updateData={(newData: IEditableData): void => {
+                                    let updatedReceipts = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[];
+
+                                    const newReceipt: IReceipt = {
+                                        store: newData.name,
+                                        date: "",
+                                        owner: myName,
+                                        totalPrice: newData.price,
+                                        items: [],
+                                        categoryForAllItems: "None",
+                                        isAllShared: true,
+                                        isAllRejected: false,
+                                        isAllMine: false
+                                    };
+
+                                    const newItem: IReceiptItem = {
+                                        name: newData.name,
+                                        price: newData.price,
+                                        amount: newData.amount,
+                                        category: DEFAULT_CATEGORY,
+                                        isMine: false,
+                                        isShared: true,
+                                        isRejected: false
+                                    }
+
+                                    newReceipt.items.push(newItem);
+
+                                    updatedReceipts.push(newReceipt);
+
+                                    setReceipts([...updatedReceipts], isFirst);
+                                }}
+                            />
+                            {...myReceipts.map((receipt, receiptNum) => {
+                                return [<TableRow
+                                    key={myName + receiptNum + 'ReceiptRow'}
+                                    editableData={{
+                                        name: receipt.store,
+                                        price: receipt.totalPrice,
+                                        amount: receipt.items.length
+                                    }}
+                                    rowType={"Receipt"}
+                                    shareState={
+                                        isFirst && (receipt.isAllMine) || (!isFirst && receipt.isAllRejected)
+                                            ? "Left"
+                                            : (!isFirst && (receipt.isAllMine) || (isFirst && receipt.isAllRejected) ? "Right" : receipt.isAllShared ? "Shared" : undefined)
+                                    }
+                                    isNewRow={false}
+                                    isEditable={isInEditMode}
+                                    updateData={(newData: IEditableData): void => {
+                                        let updatedReceipts = JSON.parse(JSON.stringify(myReceipts)) as IReceipt[];
+
+                                        if (newData.name === '') {
+                                            updatedReceipts = updatedReceipts.filter((_, i) => i !== receiptNum);
+                                        } else {
+                                            updatedReceipts[receiptNum].store = newData.name;
+                                        }
+
+                                        setReceipts([...updatedReceipts], isFirst);
+                                        newData.name === '' && setReload(true);
+                                    }}
+                                    setShareState={function (shareState: "Left" | "Shared" | "Right"): void {
+                                        switch (shareState) {
+                                            case "Left":
+                                                if (isFirst) {
+                                                    toggleAllMyItems(receiptNum, isFirst)
+                                                } else {
+                                                    toggleAllRejectedItems(receiptNum, isFirst)
+                                                }
+                                                break;
+                                            case "Shared":
+                                                toggleAllSharedItems(receiptNum, isFirst);
+                                                break;
+                                            case "Right":
+                                                if (isFirst) {
+                                                    toggleAllRejectedItems(receiptNum, isFirst)
+                                                } else {
+                                                    toggleAllMyItems(receiptNum, isFirst)
+                                                }
+                                                break;
+                                        }
+                                    }}
+                                />, ...generateItemTableRows(myName, isFirst, receiptNum, isInEditMode, categories)];
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            }
         </div >
     );
 }

@@ -34,7 +34,7 @@ export default function PersonCard(props: {
     return (
         <div className={[styles.personCard].join(' ')}>
             <h4 className={[styles.personName].join(' ')}>
-                {myName != ''
+                {myName !==''
                     ? myName
                     : 'Unnamed Person'
                 }
