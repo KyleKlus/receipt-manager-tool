@@ -1,11 +1,8 @@
-import { Category } from "@/enums/Category";
-
-
 export interface IReceiptItem {
     name: string;
     price: number;
     amount: number;
-    category: Category;
+    category: string;
     isMine: boolean;
     isShared: boolean;
     isRejected: boolean;
